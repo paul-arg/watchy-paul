@@ -41,3 +41,4 @@ This allows to mash the up and down buttons when setting up alarms and timers, s
 - present alerts nicely and choose the type of buzz. For now, they are just a hack of the showBuzz function.
 - make the PETs buzz when they are at 0/00:00
 - maybe add reminders that can alert a certain amount of time before a PET reaches 0/00:00
+- improve the World Time menu: add cities and select them
