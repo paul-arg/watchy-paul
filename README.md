@@ -47,7 +47,7 @@ Then, it will count up from that time and date.
 Time and date is marked negative if in the future and positive if in the past.
 Cycle through PETs with the up or down buttons.
 
-![PET](/readme_assets/pet.png "PET")
+![PET](/readme_assets/PET.png "PET")
 
 ## About the button behavior
 When the watch is awake, the button behavior is different than the base Watchy.
