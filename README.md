@@ -30,6 +30,7 @@ Five different timers, that can repeat if necessary.
 Cycle through timers with the down button and start/pause a timer with the up button.
 
 ![Timer](/readme_assets/timer.png "Timer")
+
 ![Timer Set](/readme_assets/timerset.png "Timer Set")
 
 ## Alarms
@@ -37,6 +38,7 @@ Five different alarms, that can either set up daily (with weekday selection), or
 Cycle through alarms with the down button and toggle an alarm on and off with the up button.
 
 ![Alarm](/readme_assets/alarm.png "Alarm")
+
 ![Alarm Set](/readme_assets/alarmset.png "Alarm Set")
 
 ## PET (Phase Elapsed Time)
