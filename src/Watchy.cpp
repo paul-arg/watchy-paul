@@ -1003,8 +1003,9 @@ void Watchy::showChronograph(bool partialRefresh) {
         display.drawBitmap(200-10, 200-37, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
     }
     
-    display.setCursor(0, 20);
-    display.printf("Chronograph\n\n");
+    display.setTextWrap(false);
+    drawCenteredString("Chronograph", 100, 20, false);
+    display.printf("\n\n");
 
     display.setFont(&Bizcat_32pt7b);
     display.printf("%d/%02d:%02d\n", chrono.days, chrono.hours, chrono.minutes);
@@ -1035,8 +1036,11 @@ void Watchy::showWorldTime(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    display.setCursor(0, 20);
-    display.printf("World Time\n\n");
+    
+    display.setTextWrap(false);
+    drawCenteredString("World Time", 100, 20, false);
+
+    display.printf("\n\n");
 
     RTC.read(currentTime);
     uint32_t now_epoch = makeTime(currentTime);
@@ -1076,8 +1080,9 @@ void Watchy::showTimer(bool partialRefresh) {
     }
     display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
 
-    display.setCursor(20, 20);
-    display.println("Timers");
+    display.setTextWrap(false);
+    drawCenteredString("Timers", 100, 20, false);
+    display.printf("\n\n");
 
     display.printf("%d", timerIndex+1);
 
@@ -1198,8 +1203,9 @@ void Watchy::showAlarm(bool partialRefresh) {
     display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
     display.drawBitmap(200-10, 0, epd_bitmap_toggle_n90, 10, 45, GxEPD_BLACK);
     
-    display.setCursor(20, 20);
-    display.println("Alarms");
+    display.setTextWrap(false);
+    drawCenteredString("Alarms", 100, 20, false);
+    display.printf("\n\n");
 
     //display.setFont(&Bizcat_24pt7b);
 
@@ -1448,8 +1454,9 @@ void Watchy::showPET(bool partialRefresh) {
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
 
 
-    display.setCursor(20, 20);
-    display.println("PET");
+    display.setTextWrap(false);
+    drawCenteredString("PET", 100, 20, false);
+    display.printf("\n\n");
     display.println(PETIndex + 1);
 
     RTC.read(currentTime);
@@ -1594,8 +1601,11 @@ void Watchy::showMET(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    display.setCursor(0, 20);
-    display.println("MET");
+    
+    
+    display.setTextWrap(false);
+    drawCenteredString("MET", 100, 20, false);
+    display.printf("\n\n");
 
     display.display(partialRefresh);
     guiState = MET_STATE;

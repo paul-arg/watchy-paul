@@ -115,7 +115,7 @@ class StarryHorizon : public Watchy {
 
     void drawDate() {
         String monthStr = monthShortStr(currentTime.Month);
-          String dayOfWeek = dayShortStr(currentTime.Wday);
+        String dayOfWeek = dayShortStr(currentTime.Wday);
 
         /*
         switch (currentTime.Month) {
