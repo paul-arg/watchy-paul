@@ -170,8 +170,6 @@ class Watchy {
         static WatchyRTC RTC;
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display;
         tmElements_t currentTime;
-        uint8_t cityIndex = 2;
-        bool DSTOn = true;
         watchySettings settings;
     public:
         explicit Watchy(const watchySettings& s) : settings(s){} //constructor

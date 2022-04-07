@@ -9,6 +9,10 @@ RTC_DATA_ATTR int menuIndex;
 RTC_DATA_ATTR uint8_t alarmIndex = 0; //alarm index to show
 RTC_DATA_ATTR uint8_t timerIndex = 0; //timer index to show
 RTC_DATA_ATTR uint8_t PETIndex = 0; //PET index to show
+
+RTC_DATA_ATTR uint8_t cityIndex = 2;
+RTC_DATA_ATTR bool DSTOn = true;
+
 RTC_DATA_ATTR BMA423 sensor;
 RTC_DATA_ATTR bool WIFI_CONFIGURED;
 RTC_DATA_ATTR bool BLE_CONFIGURED;
