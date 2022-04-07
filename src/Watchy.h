@@ -22,6 +22,7 @@
 #include "config.h"
 #include "icons.h"
 #include "images.h"
+#include "secrets.h"
 
 typedef struct weatherData{
     int8_t temperature;
@@ -220,6 +221,7 @@ class Watchy {
         void showMET(bool partialRefresh);
         void drawSleep();
         void showSleep(bool partialRefresh);
+        void showChess(bool partialRefresh);
         void checkForAlarms();
         void awakeLogic();
 

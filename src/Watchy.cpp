@@ -502,7 +502,8 @@ void Watchy::menuButton() {
     else if (guiState == MAIN_MENU_STATE) {  // if already in menu, then select menu item
         switch (menuIndex) {
             case 0:
-                showAbout();
+                //showAbout();
+                showChess(true);
                 break;
             case 1:
                 showBuzz("Buzz!");
@@ -2158,6 +2159,44 @@ void Watchy::showTimeSet(bool partialRefresh) {
 
     guiState = TIME_SET_STATE;
     display.display(partialRefresh);
+}
+
+void Watchy::showChess(bool partialRefresh) {
+
+    display.setFullWindow();
+    display.fillScreen(GxEPD_BLACK);
+    display.setFont(&Bizcat_7b);
+    display.setTextColor(GxEPD_WHITE);
+    display.setCursor(0, 20);
+
+    display.println("Connecting to WiFi...");
+    display.display(true);  // full refresh
+    if (connectWiFi()) {
+        HTTPClient http;               // Use Weather API for live data if WiFi is connected
+        http.setConnectTimeout(3000);  // 3 second max timeout
+        String queryURL = "https://lichess.org/api/account/playing";
+        http.begin(queryURL.c_str());
+        http.addHeader("Authorization", LICHESS_AUTH_HEADER);
+        int httpResponseCode = http.GET();
+        if (httpResponseCode == 200) {
+            Serial.println("HTTP 200");
+            String payload = http.getString();
+            DynamicJsonDocument doc(1024);
+            auto error = deserializeJson(doc, payload);
+            if (!error) {
+                Serial.println("FEN:");
+                Serial.println(doc["nowPlaying"][0]["fen"].as<const char *>());
+            } else {
+                Serial.println(error.c_str());
+            }
+        } else {
+            // http error
+        }
+        http.end();
+    } else {
+        display.println("WiFi Not Configured");
+    }
+    display.display(true);
 }
 
 void Watchy::setTime() {
