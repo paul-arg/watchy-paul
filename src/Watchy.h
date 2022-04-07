@@ -44,6 +44,11 @@ typedef struct watchySettings{
     int dstOffset;
 }watchySettings;
 
+struct W_City {
+    String name;
+    int16_t utc_offset; //in minutes
+};
+
 struct W_Alarm {
     bool isOn;
     uint8_t hour;
