@@ -49,6 +49,8 @@ struct W_City {
     int16_t utc_offset; //in minutes
 };
 
+RTC_DATA_ATTR const uint8_t number_of_cities = 59;
+
 RTC_DATA_ATTR const W_City cities[59] = {
     {"Lisbon"         ,0},
     {"London"         ,0},

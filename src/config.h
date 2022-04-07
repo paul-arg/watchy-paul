@@ -27,15 +27,19 @@
 #define TIMER_SET_STATE 11
 #define PET_SET_STATE 12
 #define WORLD_TIME_SET_STATE 13
+#define TIME_SET_STATE 14
 
 #define MENU_HEIGHT 25
 #define MENU_LENGTH 7
 //set time
-#define SET_HOUR 0
-#define SET_MINUTE 1
-#define SET_YEAR 2
-#define SET_MONTH 3
+#define SET_CITY 0
+#define SET_HOUR 1
+#define SET_MINUTE 2
+#define SET_DST_ON 3
 #define SET_DAY 4
+#define SET_MONTH 5
+#define SET_YEAR 6
+
 #define HOUR_12_24 24
 
 //sleep hours

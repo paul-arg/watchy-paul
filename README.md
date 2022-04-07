@@ -14,7 +14,8 @@ https://github.com/sqfmi/Watchy/tree/master/examples/WatchFaces/StarryHorizon
 You can change the watchface by editing the drawWatchFace method.
 
 ## World Time
-Very basic for now. You have to enter the time difference with your country and the city name, in the showWorldTime method.
+Three cities can be displayed.
+You can choose the cities in a list and specify if DST is on in the city or not.
 
 ![World Time](/readme_assets/wtime.png "World Time")
 
@@ -59,4 +60,3 @@ This allows to mash the up and down buttons when setting up alarms and timers, s
 - present alerts nicely and choose the type of buzz. For now, they are just a hack of the showBuzz function.
 - make the PETs buzz when they are at 0/00:00
 - maybe add reminders that can alert a certain amount of time before a PET reaches 0/00:00
-- improve the World Time menu: add cities and select them

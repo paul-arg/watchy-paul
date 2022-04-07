@@ -16,6 +16,7 @@ RTC_DATA_ATTR weatherData currentWeather;
 RTC_DATA_ATTR int weatherIntervalCounter = -1;
 RTC_DATA_ATTR bool displayFullInit = true;
 
+RTC_DATA_ATTR int8_t time_set_index = SET_HOUR;
 RTC_DATA_ATTR int8_t WT_set_index = 0;
 RTC_DATA_ATTR int8_t WT_set_value_index = SET_WORLD_TIME_INDEX;
 RTC_DATA_ATTR int8_t alarm_set_value_index = SET_ALARM_ON;
@@ -26,6 +27,10 @@ RTC_DATA_ATTR ezButton menu_button(MENU_BTN_PIN);
 RTC_DATA_ATTR ezButton back_button(BACK_BTN_PIN);
 RTC_DATA_ATTR ezButton up_button(UP_BTN_PIN);
 RTC_DATA_ATTR ezButton down_button(DOWN_BTN_PIN);
+
+RTC_DATA_ATTR tmElements_t timeBeingSet;
+RTC_DATA_ATTR uint8_t cityIndexBeingSet = 2;
+RTC_DATA_ATTR bool DSTBeingSet = false;
 
 RTC_DATA_ATTR W_WorldTime world_times[3] = {
     { 2,  true},
@@ -432,6 +437,8 @@ void Watchy::menuButton() {
         guiState = WORLD_TIME_STATE;
         //showWorldTime(true);
         // showSleep(false);
+    } else if (guiState == TIME_SET_STATE) {
+        time_set_index == SET_YEAR ? time_set_index = SET_CITY : time_set_index++; 
     } else if (guiState == SLEEP_STATE) {  // enter menu state if coming from watch face
         guiState = WORLD_TIME_STATE;
         //showWorldTime(true);
@@ -439,11 +446,7 @@ void Watchy::menuButton() {
         guiState = CHRONOGRAPH_STATE;
         //showChronograph(true);
     } else if (guiState == WORLD_TIME_SET_STATE) {
-        if (WT_set_value_index == SET_WORLD_TIME_DST_ON) {
-            WT_set_value_index = SET_WORLD_TIME_INDEX;
-        } else {
-            WT_set_value_index++;
-        }
+        WT_set_value_index == SET_WORLD_TIME_DST_ON ? WT_set_value_index = SET_WORLD_TIME_INDEX : WT_set_value_index++;
     } else if (guiState == CHRONOGRAPH_STATE) {
         guiState = TIMER_STATE;
         //showTimer(true);
@@ -504,7 +507,11 @@ void Watchy::menuButton() {
                 showAccelerometer();
                 break;
             case 3:
-                setTime();
+                //setTime();
+                RTC.read(timeBeingSet);
+                timeBeingSet.Second = 0;
+                time_set_index = SET_CITY;
+                guiState = TIME_SET_STATE;
                 break;
             case 4:
                 setupWifi();
@@ -528,6 +535,11 @@ void Watchy::backButton() {
         RTC.read(currentTime);
         guiState = WATCHFACE_STATE;
         //showWatchFace(true);
+    } else if (guiState == TIME_SET_STATE) {
+        RTC.set(timeBeingSet);
+        DSTOn = DSTBeingSet;
+        cityIndex = cityIndexBeingSet;
+        guiState = MAIN_MENU_STATE; 
     } else if (guiState == APP_STATE) {
         showMenu(menuIndex, true);  // exit to menu if already in app
     } else if (guiState == FW_UPDATE_STATE) {
@@ -572,6 +584,46 @@ void Watchy::upButton() {
             menuIndex = MENU_LENGTH - 1;
         }
         //showMenu(menuIndex, true);
+    } else if (guiState == TIME_SET_STATE) {
+        switch (time_set_index) {
+        
+        case SET_CITY:
+            cityIndexBeingSet == number_of_cities - 1 ? cityIndexBeingSet = 0 : cityIndexBeingSet++;
+            break;
+        
+        case SET_HOUR:
+            timeBeingSet.Hour == 23 ? timeBeingSet.Hour = 0 : timeBeingSet.Hour++;
+            break;
+
+        case SET_MINUTE:
+            timeBeingSet.Minute == 59 ? timeBeingSet.Minute = 0 : timeBeingSet.Minute++;
+            break;
+
+        case SET_DST_ON:
+            DSTBeingSet = !DSTBeingSet;
+            break;
+
+        case SET_DAY:
+            timeBeingSet.Day == getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year)) ? timeBeingSet.Day = 0 : timeBeingSet.Day++;
+            break;
+
+        case SET_MONTH:
+            timeBeingSet.Month == 12 ? timeBeingSet.Month = 0 : timeBeingSet.Month++;
+            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
+                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+            }
+            break;
+
+        case SET_YEAR:
+            timeBeingSet.Year++;
+            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
+                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+            }
+            break;
+        
+        default:
+            break;
+        }
     } else if (guiState == WATCHFACE_STATE) {
         return;
     } else if (guiState == WORLD_TIME_SET_STATE) {
@@ -585,7 +637,7 @@ void Watchy::upButton() {
             break;
 
         case SET_WORLD_TIME_CITY:
-            if (world_times[WT_set_index].city_index == 58) {
+            if (world_times[WT_set_index].city_index == number_of_cities - 1) {
                 world_times[WT_set_index].city_index = 0;
             } else {
                 world_times[WT_set_index].city_index++;
@@ -815,6 +867,46 @@ void Watchy::downButton() {
         //showMenu(menuIndex, true);
     } else if (guiState == WATCHFACE_STATE) {
         return;
+    } else if (guiState == TIME_SET_STATE) {
+        switch (time_set_index) {
+        
+        case SET_CITY:
+            cityIndexBeingSet == 0 ? cityIndexBeingSet = number_of_cities - 1 : cityIndexBeingSet--;
+            break;
+        
+        case SET_HOUR:
+            timeBeingSet.Hour == 0 ? timeBeingSet.Hour = 23 : timeBeingSet.Hour--;
+            break;
+
+        case SET_MINUTE:
+            timeBeingSet.Minute == 0 ? timeBeingSet.Minute = 59 : timeBeingSet.Minute--;
+            break;
+
+        case SET_DST_ON:
+            DSTBeingSet = !DSTBeingSet;
+            break;
+
+        case SET_DAY:
+            timeBeingSet.Day == 0 ? timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year)) : timeBeingSet.Day++;
+            break;
+
+        case SET_MONTH:
+            timeBeingSet.Month == 0 ? timeBeingSet.Month = 12 : timeBeingSet.Month--;
+            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
+                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+            }
+            break;
+
+        case SET_YEAR:
+            timeBeingSet.Year--;
+            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
+                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+            }
+            break;
+        
+        default:
+            break;
+        }
     } else if (guiState == WORLD_TIME_SET_STATE) {
         switch (WT_set_value_index) {
         case SET_WORLD_TIME_INDEX:
@@ -827,7 +919,7 @@ void Watchy::downButton() {
 
         case SET_WORLD_TIME_CITY:
             if (world_times[WT_set_index].city_index == 0) {
-                world_times[WT_set_index].city_index = 58;
+                world_times[WT_set_index].city_index = number_of_cities - 1;
             } else {
                 world_times[WT_set_index].city_index--;
             }
@@ -1493,7 +1585,7 @@ void Watchy::drawAlarmSet() {
         display.print("/");
 
         if (alarm_set_value_index == SET_ALARM_YEAR) {
-            display.getTextBounds("1995", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+            display.getTextBounds(String(alarms[alarmIndex].year), 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
         display.print(alarms[alarmIndex].year);
@@ -1720,7 +1812,7 @@ void Watchy::showPETSet(bool partialRefresh){
         display.print("/");
 
         if (PET_set_value_index == SET_PET_YEAR) {
-            display.getTextBounds("1995", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+            display.getTextBounds(String(PETs[PETIndex].year), 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
         display.print(PETs[PETIndex].year);
@@ -1899,6 +1991,10 @@ void Watchy::showState(int guiState, bool partialRefresh){
             showWatchFace(partialRefresh);
             break;
 
+        case TIME_SET_STATE:
+            showTimeSet(partialRefresh);
+            break;
+
         case WORLD_TIME_STATE:
             showWorldTime(partialRefresh);
             break;
@@ -1959,7 +2055,104 @@ void Watchy::vibMotor(uint8_t intervalMs, uint8_t length) {
 }
 
 void Watchy::showTimeSet(bool partialRefresh) {
-    
+    int16_t bound_x, bound_y;
+    uint16_t bound_width, bound_height;
+
+    display.setFullWindow();
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setFont(&Bizcat_24pt7b);
+
+    display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
+    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
+    display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
+
+    display.setCursor(20, 20);
+    display.printf("Set Time\n\n");
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    if (time_set_index == SET_CITY) {
+        display.getTextBounds(cities[cityIndexBeingSet].name, 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    display.println(cities[cityIndexBeingSet].name);
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    if (cities[cityIndexBeingSet].utc_offset >= 0) {
+        display.printf("UTC +%g\n", cities[cityIndexBeingSet].utc_offset/60.0);
+    } else {
+        display.printf("UTC %g\n", cities[cityIndexBeingSet].utc_offset/60.0);
+    }
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    if (time_set_index == SET_HOUR) {
+        display.getTextBounds("09", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    if (timeBeingSet.Hour < 10) {
+        display.print("0");
+    }
+    display.print(timeBeingSet.Hour);
+
+    display.print(":");
+
+    if (time_set_index == SET_MINUTE) {
+        display.getTextBounds("30", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    if (timeBeingSet.Minute < 10) {
+        display.print("0");
+    }
+    display.print(timeBeingSet.Minute);
+    display.print("\n");
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    String DST_on_text;
+    if (DSTBeingSet) {
+        DST_on_text = "DST On";
+    } else {
+        DST_on_text = "DST Off";
+    }
+    if (time_set_index == SET_DST_ON) {
+        display.getTextBounds(DST_on_text, 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    display.println(DST_on_text);
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    if (time_set_index == SET_DAY) {
+        display.getTextBounds("27", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    if (timeBeingSet.Day < 10) {
+        display.print("0");
+    }
+    display.print(timeBeingSet.Day);
+    display.print("/");
+
+    if (time_set_index == SET_MONTH) {
+        display.getTextBounds("09", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+
+    if (timeBeingSet.Month < 10) {
+        display.print("0");
+    }
+    display.print(timeBeingSet.Month);
+    display.print("/");
+
+    if (time_set_index == SET_YEAR) {
+        display.getTextBounds(String(tmYearToCalendar(timeBeingSet.Year)), 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    display.print(tmYearToCalendar(timeBeingSet.Year));
+    display.print("\n");
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+
+    guiState = TIME_SET_STATE;
+    display.display(partialRefresh);
 }
 
 void Watchy::setTime() {
@@ -2585,12 +2778,13 @@ void Watchy::showSyncNTP() {
 }
 
 bool Watchy::syncNTP() {  // NTP sync - call after connecting to WiFi and remember to turn it back off
-    return syncNTP(settings.gmtOffset, settings.dstOffset, settings.ntpServer.c_str());
+    //return syncNTP(settings.gmtOffset, settings.dstOffset, settings.ntpServer.c_str());
+    return syncNTP(cities[cityIndex].utc_offset * 60, DSTOn ? 3600 : 0, settings.ntpServer.c_str());
 }
 
 bool Watchy::syncNTP(long gmt, int dst, String ntpServer) {  // NTP sync - call after connecting to WiFi and remember to turn it back off
     WiFiUDP ntpUDP;
-    NTPClient timeClient(ntpUDP, ntpServer.c_str(), gmt);
+    NTPClient timeClient(ntpUDP, ntpServer.c_str(), gmt+dst);
     timeClient.begin();
     if (!timeClient.forceUpdate()) {
         return false;  // NTP sync failed
