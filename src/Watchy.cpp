@@ -16,6 +16,8 @@ RTC_DATA_ATTR weatherData currentWeather;
 RTC_DATA_ATTR int weatherIntervalCounter = -1;
 RTC_DATA_ATTR bool displayFullInit = true;
 
+RTC_DATA_ATTR int8_t WT_set_index = 0;
+RTC_DATA_ATTR int8_t WT_set_value_index = SET_WORLD_TIME_INDEX;
 RTC_DATA_ATTR int8_t alarm_set_value_index = SET_ALARM_ON;
 RTC_DATA_ATTR int8_t timer_set_value_index = SET_TIMER_ON;
 RTC_DATA_ATTR int8_t PET_set_value_index = SET_PET_ON;
@@ -25,65 +27,10 @@ RTC_DATA_ATTR ezButton back_button(BACK_BTN_PIN);
 RTC_DATA_ATTR ezButton up_button(UP_BTN_PIN);
 RTC_DATA_ATTR ezButton down_button(DOWN_BTN_PIN);
 
-RTC_DATA_ATTR W_City cities[58] = {
-    {"Lisbon"         ,0},
-    {"London"         ,0},
-    {"Paris"          ,60},
-    {"Prague"         ,60},
-    {"Rome"           ,60},
-    {"Stockholm"      ,60},
-    {"Ankara"         ,120},
-    {"Athens"         ,120},
-    {"Cairo"          ,120},
-    {"Helsinki"       ,120},
-    {"Jerusalem"      ,120},
-    {"Nicosia"        ,120},
-    {"Baghdad"        ,180},
-    {"Doha"           ,180},
-    {"Jeddah"         ,180},
-    {"Moscow"         ,180},
-    {"Tehran"         ,210},
-    {"Dubai"          ,240},
-    {"Kabul"          ,270},
-    {"Karachi"        ,300},
-    {"Delhi"          ,330},
-    {"Kathmandu"      ,345},
-    {"Dhaka"          ,360},
-    {"Yangon"         ,390},
-    {"Bangkok"        ,420},
-    {"Beijing"        ,480},
-    {"Hong Kong"      ,480},
-    {"Kuala Lumpur"   ,480},
-    {"Perth"          ,480},
-    {"Singapore"      ,480},
-    {"Taipei"         ,480},
-    {"Seoul"          ,540},
-    {"Tokyo"          ,540},
-    {"Adelaide"       ,570},
-    {"Guam"           ,600},
-    {"Sydney"         ,600},
-    {"Noumea"         ,660},
-    {"Wellington"     ,720},
-    {"Pago Pago"      ,-660},
-    {"Honolulu"       ,-600},
-    {"Anchorage"      ,-540},
-    {"Los Angeles"    ,-480},
-    {"Vancouver"      ,-480},
-    {"Denver"         ,-420},
-    {"Edmonton"       ,-420},
-    {"Chicago"        ,-360},
-    {"Mexico"         ,-360},
-    {"Winnipeg"       ,-360},
-    {"Miami"          ,-300},
-    {"New York"       ,-300},
-    {"Toronto"        ,-300},
-    {"Caracas"        ,-240},
-    {"Halifax"        ,-240},
-    {"Santiago"       ,-240},
-    {"St Johns"       ,-198},
-    {"Buenos Aires"   ,-180},
-    {"Rio de Janeiro" ,-180},
-    {"Praia"          ,-60}
+RTC_DATA_ATTR W_WorldTime world_times[3] = {
+    { 2,  true},
+    {51, false},
+    {45, false}
 };
 
 RTC_DATA_ATTR W_Alarm alarms[5] = {
@@ -118,7 +65,6 @@ void Watchy::tick(){
         decrementTimer(&timers[i]);
     }
     
-
     //update displays
     if (guiState == WATCHFACE_STATE) {
         RTC.read(currentTime);
@@ -492,6 +438,12 @@ void Watchy::menuButton() {
     } else if (guiState == WORLD_TIME_STATE) {
         guiState = CHRONOGRAPH_STATE;
         //showChronograph(true);
+    } else if (guiState == WORLD_TIME_SET_STATE) {
+        if (WT_set_value_index == SET_WORLD_TIME_DST_ON) {
+            WT_set_value_index = SET_WORLD_TIME_INDEX;
+        } else {
+            WT_set_value_index++;
+        }
     } else if (guiState == CHRONOGRAPH_STATE) {
         guiState = TIMER_STATE;
         //showTimer(true);
@@ -582,6 +534,10 @@ void Watchy::backButton() {
         showMenu(menuIndex, true);  // exit to menu if already in app
     } else if (guiState == WATCHFACE_STATE) {
         showMenu(menuIndex, true);
+    } else if (guiState == WORLD_TIME_STATE) {
+        guiState = WORLD_TIME_SET_STATE;
+    } else if (guiState == WORLD_TIME_SET_STATE) {
+        guiState = WORLD_TIME_STATE;
     } else if (guiState == TIMER_STATE) {
         timer_set_value_index = SET_TIMER_ON;
         guiState = TIMER_SET_STATE;
@@ -618,6 +574,31 @@ void Watchy::upButton() {
         //showMenu(menuIndex, true);
     } else if (guiState == WATCHFACE_STATE) {
         return;
+    } else if (guiState == WORLD_TIME_SET_STATE) {
+        switch (WT_set_value_index) {
+        case SET_WORLD_TIME_INDEX:
+            if (WT_set_index == 2) {
+                WT_set_index = 0;
+            } else {
+                WT_set_index++;
+            }
+            break;
+
+        case SET_WORLD_TIME_CITY:
+            if (world_times[WT_set_index].city_index == 58) {
+                world_times[WT_set_index].city_index = 0;
+            } else {
+                world_times[WT_set_index].city_index++;
+            }
+            break;
+
+        case SET_WORLD_TIME_DST_ON:
+            world_times[WT_set_index].dst_on = !world_times[WT_set_index].dst_on;
+            break;
+        
+        default:
+            break;
+        }
     } else if (guiState == CHRONOGRAPH_STATE) {
         chrono.isRunning = !chrono.isRunning;
         //showChronograph(true);
@@ -834,6 +815,31 @@ void Watchy::downButton() {
         //showMenu(menuIndex, true);
     } else if (guiState == WATCHFACE_STATE) {
         return;
+    } else if (guiState == WORLD_TIME_SET_STATE) {
+        switch (WT_set_value_index) {
+        case SET_WORLD_TIME_INDEX:
+            if (WT_set_index == 0) {
+                WT_set_index = 2;
+            } else {
+                WT_set_index--;
+            }
+            break;
+
+        case SET_WORLD_TIME_CITY:
+            if (world_times[WT_set_index].city_index == 0) {
+                world_times[WT_set_index].city_index = 58;
+            } else {
+                world_times[WT_set_index].city_index--;
+            }
+            break;
+
+        case SET_WORLD_TIME_DST_ON:
+            world_times[WT_set_index].dst_on = !world_times[WT_set_index].dst_on;
+            break;
+        
+        default:
+            break;
+        }
     } else if (guiState == ALARM_STATE) {
         if (alarmIndex == 4) {
             alarmIndex = 0;
@@ -1096,34 +1102,105 @@ void Watchy::showWorldTime(bool partialRefresh) {
     display.setTextColor(GxEPD_BLACK);
     display.setFont(&Bizcat_24pt7b);
 
+    display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
     display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     
     display.setTextWrap(false);
     drawCenteredString("World Time", 100, 20, false);
+    display.printf("\n");
 
-    display.printf("\n\n");
+    display.setCursor(display.getCursorX(), display.getCursorY() + 5);
 
     RTC.read(currentTime);
     uint32_t now_epoch = makeTime(currentTime);
-    uint32_t chi_epoch = now_epoch - 7*3600;
-    uint32_t cbb_epoch = now_epoch - 6*3600;
-    tmElements_t cbb_tmelements;
-    tmElements_t chi_tmelements;
-    breakTime(cbb_epoch, cbb_tmelements);
-    breakTime(chi_epoch, chi_tmelements);
+    uint32_t wt_epoch;
 
-    display.println("Cochabamba");
-    display.printf("%02d:%02d %02d/%02d/%04d\n\n", 
-                    cbb_tmelements.Hour, cbb_tmelements.Minute, cbb_tmelements.Day, cbb_tmelements.Month, tmYearToCalendar(cbb_tmelements.Year)
-    );
+    for (uint8_t i = 0; i < 3; i++) {
+        int16_t now_offset = cities[cityIndex].utc_offset;
+        wt_epoch = now_epoch - (now_offset * 60) + (cities[world_times[i].city_index].utc_offset * 60);
+        
+        if(DSTOn) {
+            wt_epoch -= 3600;
+        }
 
-    display.println("Chicago");
-    display.printf("%02d:%02d %02d/%02d/%04d\n\n", 
-                    chi_tmelements.Hour, chi_tmelements.Minute, chi_tmelements.Day, chi_tmelements.Month, tmYearToCalendar(chi_tmelements.Year)
-    );
+        if(world_times[i].dst_on) {
+            wt_epoch += 3600;
+        }
+
+        tmElements_t wt_telements;
+        breakTime(wt_epoch, wt_telements);
+
+        display.println(cities[world_times[i].city_index].name);
+        display.printf(
+            "%02d:%02d %02d/%02d/%04d\n", 
+            wt_telements.Hour,
+            wt_telements.Minute,
+            wt_telements.Day,
+            wt_telements.Month,
+            tmYearToCalendar(wt_telements.Year)
+        );
+    }
 
     display.display(partialRefresh);
     guiState = WORLD_TIME_STATE;
+}
+
+void Watchy::showWorldTimeSet(bool partialRefresh) {
+    int16_t bound_x, bound_y;
+    uint16_t bound_width, bound_height;
+
+    display.setFullWindow();
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setFont(&Bizcat_24pt7b);
+
+    display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
+    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
+    display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
+
+    display.setCursor(20, 20);
+    display.printf("Set World Time\n\n");
+
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+    if (WT_set_value_index == SET_WORLD_TIME_INDEX) {
+        display.getTextBounds(String(WT_set_index), 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+
+    display.println(WT_set_index + 1);
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+
+    if (WT_set_value_index == SET_WORLD_TIME_CITY) {
+        display.getTextBounds(cities[world_times[WT_set_index].city_index].name, 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    display.println(cities[world_times[WT_set_index].city_index].name);
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    if (cities[world_times[WT_set_index].city_index].utc_offset >= 0) {
+        display.printf("UTC +%g\n", cities[world_times[WT_set_index].city_index].utc_offset/60.0);
+    } else {
+        display.printf("UTC %g\n", cities[world_times[WT_set_index].city_index].utc_offset/60.0);
+    }
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    String WT_DST_on_text;
+    if (world_times[WT_set_index].dst_on) {
+        WT_DST_on_text = "DST On";
+    } else {
+        WT_DST_on_text = "DST Off";
+    }
+    if (WT_set_value_index == SET_WORLD_TIME_DST_ON) {
+        display.getTextBounds(WT_DST_on_text, 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+        display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    }
+    display.println(WT_DST_on_text);
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    guiState = WORLD_TIME_SET_STATE;
+    display.display(partialRefresh);
 }
 
 void Watchy::showTimer(bool partialRefresh) {
@@ -1523,7 +1600,7 @@ void Watchy::showPET(bool partialRefresh) {
     RTC.read(currentTime);
 
     if (PETs[PETIndex].isOn) {
-        display.printf("%02d:%02d %02d/%02d/%04d\n\n", PETs[PETIndex].hour, PETs[PETIndex].minute, PETs[PETIndex].day, PETs[PETIndex].month, PETs[PETIndex].year);
+        display.printf("%02d:%02d %02d/%02d/%04d\n", PETs[PETIndex].hour, PETs[PETIndex].minute, PETs[PETIndex].day, PETs[PETIndex].month, PETs[PETIndex].year);
 
         uint32_t PET_epoch = tmConvert_t(PETs[PETIndex].year, PETs[PETIndex].month, PETs[PETIndex].day, PETs[PETIndex].hour, PETs[PETIndex].minute, 0);
         uint32_t now_epoch = tmConvert_t(currentTime.Year + 1970, currentTime.Month, currentTime.Day, currentTime.Hour, currentTime.Minute, 0);
@@ -1826,6 +1903,10 @@ void Watchy::showState(int guiState, bool partialRefresh){
             showWorldTime(partialRefresh);
             break;
 
+        case WORLD_TIME_SET_STATE:
+            showWorldTimeSet(partialRefresh);
+            break;
+
         case CHRONOGRAPH_STATE:
             showChronograph(partialRefresh);
             break;
@@ -1875,6 +1956,10 @@ void Watchy::vibMotor(uint8_t intervalMs, uint8_t length) {
         digitalWrite(VIB_MOTOR_PIN, motorOn);
         delay(intervalMs);
     }
+}
+
+void Watchy::showTimeSet(bool partialRefresh) {
+    
 }
 
 void Watchy::setTime() {

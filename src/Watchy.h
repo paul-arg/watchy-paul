@@ -49,6 +49,73 @@ struct W_City {
     int16_t utc_offset; //in minutes
 };
 
+RTC_DATA_ATTR const W_City cities[59] = {
+    {"Lisbon"         ,0},
+    {"London"         ,0},
+    {"Paris"          ,60},
+    {"Prague"         ,60},
+    {"Rome"           ,60},
+    {"Stockholm"      ,60},
+    {"Ankara"         ,120},
+    {"Athens"         ,120},
+    {"Cairo"          ,120},
+    {"Helsinki"       ,120},
+    {"Jerusalem"      ,120},
+    {"Nicosia"        ,120},
+    {"Baghdad"        ,180},
+    {"Doha"           ,180},
+    {"Jeddah"         ,180},
+    {"Moscow"         ,180},
+    {"Tehran"         ,210},
+    {"Dubai"          ,240},
+    {"Kabul"          ,270},
+    {"Karachi"        ,300},
+    {"Delhi"          ,330},
+    {"Kathmandu"      ,345},
+    {"Dhaka"          ,360},
+    {"Yangon"         ,390},
+    {"Bangkok"        ,420},
+    {"Beijing"        ,480},
+    {"Hong Kong"      ,480},
+    {"Kuala Lumpur"   ,480},
+    {"Perth"          ,480},
+    {"Singapore"      ,480},
+    {"Taipei"         ,480},
+    {"Seoul"          ,540},
+    {"Tokyo"          ,540},
+    {"Adelaide"       ,570},
+    {"Guam"           ,600},
+    {"Sydney"         ,600},
+    {"Noumea"         ,660},
+    {"Wellington"     ,720},
+    {"Pago Pago"      ,-660},
+    {"Honolulu"       ,-600},
+    {"Anchorage"      ,-540},
+    {"Los Angeles"    ,-480},
+    {"Vancouver"      ,-480},
+    {"Denver"         ,-420},
+    {"Edmonton"       ,-420},
+    {"Chicago"        ,-360},
+    {"Mexico"         ,-360},
+    {"Winnipeg"       ,-360},
+    {"Miami"          ,-300},
+    {"New York"       ,-300},
+    {"Toronto"        ,-300},
+    {"La Paz"         ,-240},
+    {"Caracas"        ,-240},
+    {"Halifax"        ,-240},
+    {"Santiago"       ,-240},
+    {"St Johns"       ,-198},
+    {"Buenos Aires"   ,-180},
+    {"Rio de Janeiro" ,-180},
+    {"Praia"          ,-60}
+};
+
+struct W_WorldTime {
+    uint8_t city_index;
+    bool dst_on;
+};
+
 struct W_Alarm {
     bool isOn;
     uint8_t hour;
@@ -101,6 +168,8 @@ class Watchy {
         static WatchyRTC RTC;
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display;
         tmElements_t currentTime;
+        uint8_t cityIndex = 2;
+        bool DSTOn = true;
         watchySettings settings;
     public:
         explicit Watchy(const watchySettings& s) : settings(s){} //constructor
@@ -129,8 +198,10 @@ class Watchy {
 
         void showState(int guiState, bool partialRefresh);
         void showWatchFace(bool partialRefresh);
+        void showTimeSet(bool partialRefresh);
         void showChronograph(bool partialRefresh);
         void showWorldTime(bool partialRefresh);
+        void showWorldTimeSet(bool partialRefresh);
         void showTimer(bool partialRefresh);
         void showTimerSet(bool partialRefresh);
         void showAlarm(bool partialRefresh);

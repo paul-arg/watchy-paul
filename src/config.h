@@ -26,6 +26,7 @@
 #define SLEEP_STATE 10
 #define TIMER_SET_STATE 11
 #define PET_SET_STATE 12
+#define WORLD_TIME_SET_STATE 13
 
 #define MENU_HEIGHT 25
 #define MENU_LENGTH 7
@@ -42,6 +43,11 @@
 #define SLEEP_STARTS_MINUTE 0
 #define SLEEP_ENDS_HOUR 7
 #define SLEEP_ENDS_MINUTE 0
+
+//set world time -- modes
+#define SET_WORLD_TIME_INDEX 0
+#define SET_WORLD_TIME_CITY 1
+#define SET_WORLD_TIME_DST_ON 2
 
 //set alarm -- modes
 #define SET_ALARM_ON 0
