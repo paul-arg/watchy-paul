@@ -49,9 +49,9 @@ struct W_City {
     int16_t utc_offset; //in minutes
 };
 
-RTC_DATA_ATTR const uint8_t number_of_cities = 59;
+RTC_DATA_ATTR const uint8_t number_of_cities = 67;
 
-RTC_DATA_ATTR const W_City cities[59] = {
+RTC_DATA_ATTR const W_City cities[67] = {
     {"Lisbon"         ,0},
     {"London"         ,0},
     {"Paris"          ,60},
@@ -68,7 +68,9 @@ RTC_DATA_ATTR const W_City cities[59] = {
     {"Doha"           ,180},
     {"Jeddah"         ,180},
     {"Moscow"         ,180},
+    {"Mamoudzou"      ,180},
     {"Tehran"         ,210},
+    {"Saint-Denis"    ,240},
     {"Dubai"          ,240},
     {"Kabul"          ,270},
     {"Karachi"        ,300},
@@ -89,9 +91,11 @@ RTC_DATA_ATTR const W_City cities[59] = {
     {"Guam"           ,600},
     {"Sydney"         ,600},
     {"Noumea"         ,660},
+    {"Mata Utu"       ,720},
     {"Wellington"     ,720},
     {"Pago Pago"      ,-660},
     {"Honolulu"       ,-600},
+    {"Papeete"        ,-600},
     {"Anchorage"      ,-540},
     {"Los Angeles"    ,-480},
     {"Vancouver"      ,-480},
@@ -103,11 +107,15 @@ RTC_DATA_ATTR const W_City cities[59] = {
     {"Miami"          ,-300},
     {"New York"       ,-300},
     {"Toronto"        ,-300},
+    {"Gustavia"       ,-240},
     {"La Paz"         ,-240},
     {"Caracas"        ,-240},
+    {"Basse-Terre"    ,-240},
+    {"Fort-de-France" ,-240},
     {"Halifax"        ,-240},
     {"Santiago"       ,-240},
-    {"St Johns"       ,-198},
+    {"St Johns"       ,-210},
+    {"Cayenne"        ,-180},
     {"Buenos Aires"   ,-180},
     {"Rio de Janeiro" ,-180},
     {"Praia"          ,-60}
