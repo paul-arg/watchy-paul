@@ -509,6 +509,7 @@ void Watchy::menuButton() {
             case 3:
                 //setTime();
                 RTC.read(timeBeingSet);
+                cityIndexBeingSet = cityIndex;
                 timeBeingSet.Second = 0;
                 time_set_index = SET_CITY;
                 guiState = TIME_SET_STATE;
