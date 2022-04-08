@@ -19,6 +19,8 @@ You can choose the cities in a list and specify if DST is on in the city or not.
 
 ![World Time](/readme_assets/wtime.png "World Time")
 
+![World Time](/readme_assets/wtimeset.png "Set World Time")
+
 ## Chronograph
 Chronograph that counts days, hours and minutes.
 The "Time after return" indicator shows what time it would be if the current chronograph amount was added to the current time.
