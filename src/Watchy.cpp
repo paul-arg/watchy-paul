@@ -38,8 +38,8 @@ RTC_DATA_ATTR bool DSTBeingSet = false;
 
 RTC_DATA_ATTR W_WorldTime world_times[3] = {
     { 2,  true},
-    {51, false},
-    {45, false}
+    {49,  true},
+    {56, false}
 };
 
 RTC_DATA_ATTR W_Alarm alarms[5] = {
@@ -2161,6 +2161,10 @@ void Watchy::showTimeSet(bool partialRefresh) {
     display.display(partialRefresh);
 }
 
+void Watchy::drawFEN(String fen, bool partialRefresh) {
+
+}
+
 void Watchy::showChess(bool partialRefresh) {
 
     display.setFullWindow();
@@ -2186,6 +2190,7 @@ void Watchy::showChess(bool partialRefresh) {
             if (!error) {
                 Serial.println("FEN:");
                 Serial.println(doc["nowPlaying"][0]["fen"].as<const char *>());
+                Serial.println(doc["nowPlaying"][0]["color"].as<const char *>());
             } else {
                 Serial.println(error.c_str());
             }
