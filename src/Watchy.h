@@ -222,6 +222,7 @@ class Watchy {
         void drawSleep();
         void showSleep(bool partialRefresh);
         void showChess(bool partialRefresh);
+        void drawFEN(String fen, bool partialRefresh);
         void checkForAlarms();
         void awakeLogic();
 
