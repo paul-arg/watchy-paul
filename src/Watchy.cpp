@@ -24,7 +24,7 @@ RTC_DATA_ATTR int8_t time_set_index = SET_HOUR;
 RTC_DATA_ATTR int8_t WT_set_index = 0;
 RTC_DATA_ATTR int8_t WT_set_value_index = SET_WORLD_TIME_INDEX;
 RTC_DATA_ATTR int8_t alarm_set_value_index = SET_ALARM_ON;
-RTC_DATA_ATTR int8_t timer_set_value_index = SET_TIMER_ON;
+RTC_DATA_ATTR int8_t timer_set_value_index = SET_TIMER_DAYS;
 RTC_DATA_ATTR int8_t PET_set_value_index = SET_PET_ON;
 
 RTC_DATA_ATTR ezButton menu_button(MENU_BTN_PIN);
@@ -459,7 +459,7 @@ void Watchy::menuButton() {
         //showAlarm(true);
     } else if (guiState == TIMER_SET_STATE) {
         if (timer_set_value_index == SET_TIMER_WILL_REPEAT) {
-            timer_set_value_index = SET_TIMER_ON;
+            timer_set_value_index = SET_TIMER_DAYS;
         } else {
             timer_set_value_index++;
         }
@@ -557,7 +557,7 @@ void Watchy::backButton() {
     } else if (guiState == WORLD_TIME_SET_STATE) {
         guiState = WORLD_TIME_STATE;
     } else if (guiState == TIMER_STATE) {
-        timer_set_value_index = SET_TIMER_ON;
+        timer_set_value_index = SET_TIMER_DAYS;
         guiState = TIMER_SET_STATE;
         //showTimerSet(true);
     } else if (guiState == TIMER_SET_STATE) {
@@ -565,6 +565,7 @@ void Watchy::backButton() {
         timers[timerIndex].hours = timers[timerIndex].original_hours;
         timers[timerIndex].minutes = timers[timerIndex].original_minutes;
         timers[timerIndex].repetition_count = 0;
+        timers[timerIndex].isRunning = false;
         guiState = TIMER_STATE;
         //showTimer(true);
     }else if (guiState == ALARM_STATE) {
@@ -575,6 +576,7 @@ void Watchy::backButton() {
         guiState = ALARM_STATE;
         //showAlarm(true);
     } else if (guiState == PET_STATE) {
+        PET_set_value_index = SET_PET_ON;
         guiState = PET_SET_STATE;
         //showPETSet(true);
     } else if (guiState == PET_SET_STATE) {
@@ -661,7 +663,9 @@ void Watchy::upButton() {
         chrono.isRunning = !chrono.isRunning;
         //showChronograph(true);
     } else if (guiState == TIMER_STATE) {
-        timers[timerIndex].isRunning = !timers[timerIndex].isRunning;
+        if (!(timers[timerIndex].days == 0 && timers[timerIndex].hours == 0 && timers[timerIndex].minutes == 0)) {
+            timers[timerIndex].isRunning = !timers[timerIndex].isRunning;
+        }
         //showTimer(true);
     } else if (guiState == TIMER_SET_STATE) {
         
@@ -1368,7 +1372,7 @@ void Watchy::showTimerSet(bool partialRefresh){
     display.printf("Set Timer %d\n", timerIndex+1);
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
-    String timer_on_text;
+    /*String timer_on_text;
     if (timers[timerIndex].isRunning) {
         timer_on_text = "On";
     } else {
@@ -1379,7 +1383,7 @@ void Watchy::showTimerSet(bool partialRefresh){
         display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
     }
     display.println(timer_on_text);
-    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());*/
 
     if (timer_set_value_index == SET_TIMER_DAYS) {
         display.getTextBounds(String(timers[timerIndex].original_days), 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
