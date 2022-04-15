@@ -28,6 +28,7 @@
 #define PET_SET_STATE 12
 #define WORLD_TIME_SET_STATE 13
 #define TIME_SET_STATE 14
+#define CHESS_STATE 15
 
 #define MENU_HEIGHT 25
 #define MENU_LENGTH 7
@@ -93,6 +94,19 @@
 #define SET_PET_MONTH 5
 #define SET_PET_YEAR 6
 
+//chess pieces
+#define W_ROOK 0
+#define W_KNIGHT 1
+#define W_BISHOP 2
+#define W_QUEEN 3
+#define W_KING 4
+#define W_PAWN 5
+#define B_ROOK 6
+#define B_KNIGHT 7
+#define B_BISHOP 8
+#define B_QUEEN 9
+#define B_KING 10
+#define B_PAWN 11
 
 //BLE OTA
 #define BLE_DEVICE_NAME "Watchy BLE OTA"

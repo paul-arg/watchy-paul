@@ -53,11 +53,11 @@ RTC_DATA_ATTR W_Alarm alarms[5] = {
 RTC_DATA_ATTR W_Chronograph chrono = {false, 0, 0, 0};
 
 RTC_DATA_ATTR W_Timer timers[5] = {
-    {false, 1,  0,  0, 1,  0,  0, false, 0},
-    {false, 0, 10,  0, 0, 10,  0, false, 0},
-    {false, 0, 10,  0, 0, 10,  0, false, 0},
-    {false, 0,  5,  0, 0,  5,  0, false, 0},
-    {false, 0,  0,  5, 0,  0,  5, false, 0}
+    {false, 0,  0,  5, 0,  0,  5, false, 0},
+    {false, 0,  0, 10, 0,  0, 10, false, 0},
+    {false, 0,  0, 15, 0,  0, 15, false, 0},
+    {false, 0,  0, 20, 0,  0, 20, false, 0},
+    {false, 0,  0, 25, 0,  0, 25, false, 0}
 };
 
 RTC_DATA_ATTR W_PET PETs[3] = {
@@ -1719,6 +1719,8 @@ void Watchy::showPET(bool partialRefresh) {
         display.setFont(&Bizcat_24pt7b);
 
         if (PETs[PETIndex].willBuzz){
+            display.drawBitmap(0, display.getCursorY() - 18, epd_bitmap_vibe_square, 31, 23, GxEPD_BLACK);
+            display.setCursor(display.getCursorX() + 42, display.getCursorY());
             display.println("Will buzz");
         } else {
             display.println("Will not buzz");
@@ -1998,6 +2000,7 @@ void Watchy::showBuzz(String message) {
 void Watchy::showState(int guiState, bool partialRefresh){
     switch (guiState) {
         case WATCHFACE_STATE:
+            RTC.read(currentTime);
             showWatchFace(partialRefresh);
             break;
 
@@ -2172,9 +2175,9 @@ void Watchy::drawFEN(String fen, bool partialRefresh) {
 void Watchy::showChess(bool partialRefresh) {
 
     display.setFullWindow();
-    display.fillScreen(GxEPD_BLACK);
+    display.fillScreen(GxEPD_WHITE);
     display.setFont(&Bizcat_7b);
-    display.setTextColor(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
     display.setCursor(0, 20);
 
     display.println("Connecting to WiFi...");
@@ -2195,6 +2198,129 @@ void Watchy::showChess(bool partialRefresh) {
                 Serial.println("FEN:");
                 Serial.println(doc["nowPlaying"][0]["fen"].as<const char *>());
                 Serial.println(doc["nowPlaying"][0]["color"].as<const char *>());
+
+                String fen = doc["nowPlaying"][0]["fen"].as<const char *>();
+                String my_color = doc["nowPlaying"][0]["color"].as<const char *>();
+                bool whiteAtBottom;
+
+                if (my_color == "white") {
+                    whiteAtBottom = true;
+                } else {
+                    whiteAtBottom = false;
+                }
+                
+                display.fillScreen(GxEPD_WHITE);
+                display.drawBitmap(0, 0, epd_bitmap_chessboard, 200, 200, GxEPD_BLACK);
+
+                uint8_t rank = 0;
+                uint8_t file = 0;
+
+                for (uint16_t i = 0; i < fen.length(); i++){
+                    switch(fen[i]){
+                        case 'P':
+                        drawPiece(W_PAWN, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'N':
+                        drawPiece(W_KNIGHT, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'B':
+                        drawPiece(W_BISHOP, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'R':
+                        drawPiece(W_ROOK, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'Q':
+                        drawPiece(W_QUEEN, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'K':
+                        drawPiece(W_KING, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'p':
+                        drawPiece(B_PAWN, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'n':
+                        drawPiece(B_KNIGHT, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'b':
+                        drawPiece(B_BISHOP, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'r':
+                        drawPiece(B_ROOK, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'q':
+                        drawPiece(B_QUEEN, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case 'k':
+                        drawPiece(B_KING, file, rank, whiteAtBottom);
+                        file++;
+                        break;
+
+                        case '/':
+                        rank++;
+                        file = 0;
+                        break;
+
+                        case '1':
+                        file += 1;
+                        break;
+
+                        case '2':
+                        file += 2;
+                        break;
+
+                        case '3':
+                        file += 3;
+                        break;
+
+                        case '4':
+                        file += 4;
+                        break;
+
+                        case '5':
+                        file += 5;
+                        break;
+
+                        case '6':
+                        file += 6;
+                        break;
+
+                        case '7':
+                        file += 7;
+                        break;
+
+                        case '8':
+                        file += 8;
+                        break;
+
+                        case ' ':
+                        goto exit_for;
+                        break;
+                    }
+                }
+                exit_for:;
+
             } else {
                 Serial.println(error.c_str());
             }
@@ -2977,4 +3103,61 @@ uint8_t Watchy::secondsToHours(int32_t diff){
 
 uint8_t Watchy::secondsToMinutes(int32_t diff){
     return (abs(diff) - secondsToDays(diff)*86400 - secondsToHours(diff)*3600)/60;
+}
+
+void Watchy::drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool whiteAtBottom) { //row = rank, column = file, orentation = true => white at bottom
+    if(!whiteAtBottom){
+        file = 7 - file;
+        rank = 7 - rank;
+    }
+    
+    switch (piece) {
+        case W_ROOK:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wR, 25, 25, GxEPD_BLACK);
+        break;
+
+        case W_KNIGHT:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wN, 25, 25, GxEPD_BLACK);
+        break;
+
+        case W_BISHOP:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wB, 25, 25, GxEPD_BLACK);
+        break;
+
+        case W_QUEEN:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wQ, 25, 25, GxEPD_BLACK);
+        break;
+
+        case W_KING:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wK, 25, 25, GxEPD_BLACK);
+        break;
+
+        case W_PAWN:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wP, 25, 25, GxEPD_BLACK);
+        break;
+
+        case B_ROOK:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bR, 25, 25, GxEPD_BLACK);
+        break;
+
+        case B_KNIGHT:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bN, 25, 25, GxEPD_BLACK);
+        break;
+
+        case B_BISHOP:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bB, 25, 25, GxEPD_BLACK);
+        break;
+
+        case B_QUEEN:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bQ, 25, 25, GxEPD_BLACK);
+        break;
+
+        case B_KING:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bK, 25, 25, GxEPD_BLACK);
+        break;
+
+        case B_PAWN:
+        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bP, 25, 25, GxEPD_BLACK);
+        break;
+    }
 }

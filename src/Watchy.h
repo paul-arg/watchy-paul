@@ -23,6 +23,7 @@
 #include "icons.h"
 #include "images.h"
 #include "secrets.h"
+#include "chess_pieces.h"
 
 typedef struct weatherData{
     int8_t temperature;
@@ -225,6 +226,8 @@ class Watchy {
         void drawFEN(String fen, bool partialRefresh);
         void checkForAlarms();
         void awakeLogic();
+
+        void drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool orientation);
 
         void menuButton();
         void backButton();
