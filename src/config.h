@@ -94,6 +94,13 @@
 #define SET_PET_MONTH 5
 #define SET_PET_YEAR 6
 
+//screen modes
+#define MODE_LINE_WIDTH 15
+#define MODE_BLANK_WIDTH 7
+#define MODE_BASELINE 190
+#define MODE_SELECTED_HEIGHT 5
+#define MODE_UNSELECTED_HEIGHT 2
+
 //chess pieces
 #define W_ROOK 0
 #define W_KNIGHT 1

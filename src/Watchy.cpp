@@ -1,5 +1,4 @@
 #include "Watchy.h"
-#include <ezButton.h>
 
 WatchyRTC Watchy::RTC;
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> Watchy::display(GxEPD2_154_D67(DISPLAY_CS, DISPLAY_DC, DISPLAY_RES, DISPLAY_BUSY));
@@ -26,6 +25,9 @@ RTC_DATA_ATTR int8_t WT_set_value_index = SET_WORLD_TIME_INDEX;
 RTC_DATA_ATTR int8_t alarm_set_value_index = SET_ALARM_ON;
 RTC_DATA_ATTR int8_t timer_set_value_index = SET_TIMER_DAYS;
 RTC_DATA_ATTR int8_t PET_set_value_index = SET_PET_ON;
+
+RTC_DATA_ATTR int32_t drift_ms = 10400; //calculated with the detectDrift function
+RTC_DATA_ATTR int32_t total_drift = 0;
 
 RTC_DATA_ATTR ezButton menu_button(MENU_BTN_PIN);
 RTC_DATA_ATTR ezButton back_button(BACK_BTN_PIN);
@@ -67,13 +69,33 @@ RTC_DATA_ATTR W_PET PETs[3] = {
 };
 
 void Watchy::tick(){
+    //compensate for drift
+    total_drift += drift_ms;
+    if (abs(total_drift) >= 1000000) { //drift has exceeded 1 second, time to compensate
+        RTC.read(currentTime);        
+        time_t currentTime_epoch = makeTime(currentTime);
+        
+        if(total_drift > 0){
+            total_drift -= 1000000;
+            currentTime_epoch -= 1;
+        } else {
+            total_drift += 1000000;
+            currentTime_epoch += 1;
+        }
+
+        breakTime(currentTime_epoch, currentTime);
+        RTC.set(currentTime);
+    }
+
     //do logic
     checkForAlarms();
+
     addMinuteToChronograph(&chrono);
+    
     for (int i = 0; i < 5; i++) {
         decrementTimer(&timers[i]);
     }
-    
+
     //update displays
     if (guiState == WATCHFACE_STATE) {
         RTC.read(currentTime);
@@ -88,6 +110,92 @@ void Watchy::tick(){
         showPET(true);
     }
 }   
+
+void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
+    display.setFullWindow();
+    display.fillScreen(GxEPD_BLACK);
+    display.setFont(&Bizcat_24pt7b);
+    display.setTextColor(GxEPD_WHITE);
+    drawCenteredString(message, 100, 100, false);
+    display.display(true);  // full refresh
+
+    pinMode(VIB_MOTOR_PIN, OUTPUT);
+    bool done = false;
+    uint8_t position_in_pattern = 0;
+    uint8_t position_in_repetition = 0;
+    uint32_t segmentStartTime = millis();
+    uint16_t segmentDuration = alarm_pattern->pattern[position_in_pattern];
+
+    digitalWrite(VIB_MOTOR_PIN, true);
+
+    pinMode(MENU_BTN_PIN, INPUT);
+    pinMode(BACK_BTN_PIN, INPUT);
+    pinMode(UP_BTN_PIN, INPUT);
+    pinMode(DOWN_BTN_PIN, INPUT);
+
+    while(true){
+        menu_button.loop();
+        back_button.loop();
+        up_button.loop();
+        down_button.loop();
+
+        //in this context, pressed means released and released means pressed
+        if(menu_button.isReleased()) {
+            Serial.println("Menu button is pressed");
+        }
+        if(menu_button.isPressed()) {
+            Serial.println("Menu button is released");
+            digitalWrite(VIB_MOTOR_PIN, false);
+            break;
+        }
+        
+        if(back_button.isReleased()) {
+            Serial.println("Back button is pressed");
+        }
+        if(back_button.isPressed()) {
+            Serial.println("Back button is released");
+            digitalWrite(VIB_MOTOR_PIN, false);
+            break;
+        }
+
+        if(up_button.isReleased()) {
+            Serial.println("Up button is pressed");
+        }
+        if(up_button.isPressed()) {
+            Serial.println("Up button is released");
+            digitalWrite(VIB_MOTOR_PIN, false);
+            break;
+        }            
+
+        if(down_button.isReleased()) {
+            Serial.println("Down button is pressed");
+        }
+        if(down_button.isPressed()) {
+            Serial.println("Down button is released");
+            digitalWrite(VIB_MOTOR_PIN, false);
+            break;
+        }
+
+        //update the motor state
+        if (millis() - segmentStartTime >= segmentDuration){ //time to jump to the next segment
+            if (position_in_pattern == sizeof(alarm_pattern->pattern) - 1 || alarm_pattern->pattern[position_in_pattern] == 0){
+                if (position_in_repetition == alarm_pattern->repetitions - 1){
+                    digitalWrite(VIB_MOTOR_PIN, false);
+                    break;
+                } else {
+                    position_in_repetition++;
+                    position_in_pattern = 0;
+                }
+            } else {
+                position_in_pattern++;
+            }
+
+            position_in_pattern % 2 == 0? digitalWrite(VIB_MOTOR_PIN, true) : digitalWrite(VIB_MOTOR_PIN, false);
+            segmentStartTime = millis();
+            segmentDuration = alarm_pattern->pattern[position_in_pattern];
+        }
+    }
+}
 
 void Watchy::init(String datetime) {
     esp_sleep_wakeup_cause_t wakeup_reason;
@@ -275,7 +383,8 @@ void Watchy::checkForAlarms() {
         if (alarms[i].hour == currentTime.Hour && alarms[i].minute == currentTime.Minute) {
             Serial.println("Hours match.");
             Serial.println("Trigerring alarm.");
-            showBuzz("Alarm " + String(i + 1) + "!");
+            //showBuzz("Alarm " + String(i + 1) + "!");
+            buzz(&pattern_1s_10t, "Alarm " + String(i + 1) + "!");
         } else {
             Serial.println("Time does not match.");
             continue;
@@ -502,8 +611,9 @@ void Watchy::menuButton() {
     else if (guiState == MAIN_MENU_STATE) {  // if already in menu, then select menu item
         switch (menuIndex) {
             case 0:
-                //showAbout();
-                showChess(true);
+                showAbout();
+                //showChess(true);
+                //detectDrift();
                 break;
             case 1:
                 showBuzz("Buzz!");
@@ -665,6 +775,10 @@ void Watchy::upButton() {
     } else if (guiState == TIMER_STATE) {
         if (!(timers[timerIndex].days == 0 && timers[timerIndex].hours == 0 && timers[timerIndex].minutes == 0)) {
             timers[timerIndex].isRunning = !timers[timerIndex].isRunning;
+        } else { 
+            timers[timerIndex].days = timers[timerIndex].original_days;
+            timers[timerIndex].hours = timers[timerIndex].original_hours;
+            timers[timerIndex].minutes = timers[timerIndex].original_minutes;
         }
         //showTimer(true);
     } else if (guiState == TIMER_SET_STATE) {
@@ -1171,6 +1285,8 @@ void Watchy::showChronograph(bool partialRefresh) {
         display.drawBitmap(200-7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
         display.drawBitmap(200-10, 200-37, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
     }
+
+    drawModeIndicator(2);
     
     display.setTextWrap(false);
     drawCenteredString("Chronograph", 100, 20, false);
@@ -1206,6 +1322,8 @@ void Watchy::showWorldTime(bool partialRefresh) {
 
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
     display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+
+    drawModeIndicator(1);
     
     display.setTextWrap(false);
     drawCenteredString("World Time", 100, 20, false);
@@ -1316,9 +1434,15 @@ void Watchy::showTimer(bool partialRefresh) {
     if (timers[timerIndex].isRunning){
         display.drawBitmap(200-12, 0, epd_bitmap_pause, 12, 13, GxEPD_BLACK);
     } else {
-        display.drawBitmap(200-7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
+        if (timers[timerIndex].days == 0 && timers[timerIndex].hours == 0 && timers[timerIndex].minutes == 0) {
+            display.drawBitmap(200-10, 0, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
+        }else {
+            display.drawBitmap(200-7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
+        }
     }
     display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
+
+    drawModeIndicator(3);
 
     display.setTextWrap(false);
     drawCenteredString("Timers", 100, 20, false);
@@ -1442,6 +1566,8 @@ void Watchy::showAlarm(bool partialRefresh) {
     display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
     display.drawBitmap(200-10, 0, epd_bitmap_toggle_n90, 10, 45, GxEPD_BLACK);
+
+    drawModeIndicator(4);
     
     display.setTextWrap(false);
     drawCenteredString("Alarms", 100, 20, false);
@@ -1693,6 +1819,7 @@ void Watchy::showPET(bool partialRefresh) {
     display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
 
+    drawModeIndicator(5);
 
     display.setTextWrap(false);
     drawCenteredString("PET", 100, 20, false);
@@ -2945,6 +3072,7 @@ void Watchy::showSyncNTP() {
             display.println("New time is:");
             display.printf("%02d:%02d:%02d\n", currentTime.Hour, currentTime.Minute, currentTime.Second);
             display.printf("%02d/%02d/%04d\n", currentTime.Day, currentTime.Month, tmYearToCalendar(currentTime.Year));
+            total_drift = 0;
         } else {
             display.println("NTP Sync Failed");
         }
@@ -3053,7 +3181,8 @@ void Watchy::decrementTimer(W_Timer *timer){
             timer->isRunning = false;
         }
         
-        showBuzz("Timer");
+        //showBuzz("Timer");
+        buzz(&pattern_1s_10t, "Timer");
         return;
     }
 
@@ -3159,5 +3288,51 @@ void Watchy::drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool whiteAtBo
         case B_PAWN:
         display.drawBitmap(file * 25, rank * 25, epd_bitmap_bP, 25, 25, GxEPD_BLACK);
         break;
+    }
+}
+
+void Watchy::detectDrift(){
+    pinMode(RTC_INT_PIN, INPUT);
+    bool done = false;
+    bool firstTickOccured = false;
+    bool readyToCheckAgain = false;
+    uint32_t firstTick;
+    uint32_t secondTick;
+    int32_t drift;
+
+    Serial.println("Starting drift detection");
+    while(!done){
+
+        if(!firstTickOccured && digitalRead(RTC_INT_PIN) == 0){
+            firstTick = micros();
+            Serial.printf("tick 1: %d\n", firstTick);
+            firstTickOccured = true;
+            RTC.clearAlarm(); 
+        }
+
+        if(firstTickOccured && !readyToCheckAgain && micros() - firstTick > 30000000) {
+            Serial.printf("ready to check again\n");
+            readyToCheckAgain = true;
+        }
+
+        if(readyToCheckAgain){
+            if (digitalRead(RTC_INT_PIN) == 0) {  // LOW means RTC ticks
+                secondTick = micros();
+                Serial.printf("tick 2: %d\n", secondTick);
+                drift = firstTick - secondTick + 60000000;
+                Serial.printf("drift: %d us\n", drift);
+                done = true;
+            }
+        }
+    }
+}
+
+void Watchy::drawModeIndicator(uint8_t mode){
+    uint8_t total_width = 6 * MODE_LINE_WIDTH + 5 * MODE_BLANK_WIDTH;
+    uint8_t cursor = 100 - floor(total_width / 2);
+
+    for (uint8_t i = 0; i < 6; i++){
+        display.drawRect(cursor, MODE_BASELINE, MODE_LINE_WIDTH, i == mode ? MODE_SELECTED_HEIGHT : MODE_UNSELECTED_HEIGHT, GxEPD_BLACK);
+        cursor += MODE_LINE_WIDTH + MODE_BLANK_WIDTH;
     }
 }

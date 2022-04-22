@@ -9,6 +9,7 @@
 #include <ArduinoJson.h>
 #include <GxEPD2_BW.h>
 #include <Wire.h>
+#include <ezButton.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include "Fonts/FiraCode_Bold9pt7b.h"
 #include "Fonts/Bizcat_7b.h"
@@ -175,6 +176,21 @@ struct W_PET {
     uint16_t year;
 };
 
+struct Alarm_Pattern {
+    uint16_t pattern[20]; //pattern of the alarm, with alternating lenghts of buzz and silence (buzz, silence, buzz, silence...)
+    uint8_t repetitions;
+};
+
+const Alarm_Pattern pattern_1s_10t = {
+    {1000, 1000},
+    10
+};
+
+const Alarm_Pattern pattern_300ms_150ms_5t = {
+    {300, 150},
+    5
+};
+
 class Watchy {
     public:
         static WatchyRTC RTC;
@@ -226,6 +242,9 @@ class Watchy {
         void drawFEN(String fen, bool partialRefresh);
         void checkForAlarms();
         void awakeLogic();
+        void detectDrift();
+        void buzz(Alarm_Pattern const *alarm_pattern, String message);
+        void drawModeIndicator(uint8_t mode);
 
         void drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool orientation);
 
