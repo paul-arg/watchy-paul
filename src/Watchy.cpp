@@ -195,6 +195,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
             segmentDuration = alarm_pattern->pattern[position_in_pattern];
         }
     }
+    
+    showState(guiState, true);
 }
 
 void Watchy::init(String datetime) {
