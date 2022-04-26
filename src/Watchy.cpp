@@ -2316,7 +2316,7 @@ void Watchy::showChess(bool partialRefresh) {
         http.setConnectTimeout(3000);  // 3 second max timeout
         String queryURL = "https://lichess.org/api/account/playing";
         http.begin(queryURL.c_str());
-        http.addHeader("Authorization", LICHESS_AUTH_HEADER);
+        http.addHeader("Authorization", "unused for now");//LICHESS_AUTH_HEADER);
         int httpResponseCode = http.GET();
         if (httpResponseCode == 200) {
             Serial.println("HTTP 200");

@@ -23,7 +23,7 @@
 #include "config.h"
 #include "icons.h"
 #include "images.h"
-#include "secrets.h"
+//#include "secrets.h"
 #include "chess_pieces.h"
 
 typedef struct weatherData{
