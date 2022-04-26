@@ -120,7 +120,6 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
     display.display(true);  // full refresh
 
     pinMode(VIB_MOTOR_PIN, OUTPUT);
-    bool done = false;
     uint8_t position_in_pattern = 0;
     uint8_t position_in_repetition = 0;
     uint32_t segmentStartTime = millis();
@@ -3298,8 +3297,8 @@ void Watchy::detectDrift(){
     bool done = false;
     bool firstTickOccured = false;
     bool readyToCheckAgain = false;
-    uint32_t firstTick;
-    uint32_t secondTick;
+    uint32_t firstTick = 0;
+    uint32_t secondTick = 0;
     int32_t drift;
 
     Serial.println("Starting drift detection");
