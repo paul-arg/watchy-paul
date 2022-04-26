@@ -19,6 +19,8 @@ RTC_DATA_ATTR weatherData currentWeather;
 RTC_DATA_ATTR int weatherIntervalCounter = -1;
 RTC_DATA_ATTR bool displayFullInit = true;
 
+RTC_DATA_ATTR bool displayUpdatedDuringTick = false;
+
 RTC_DATA_ATTR int8_t time_set_index = SET_HOUR;
 RTC_DATA_ATTR int8_t WT_set_index = 0;
 RTC_DATA_ATTR int8_t WT_set_value_index = SET_WORLD_TIME_INDEX;
@@ -88,26 +90,28 @@ void Watchy::tick(){
     }
 
     //do logic
+    displayUpdatedDuringTick = false;
     checkForAlarms();
-
     addMinuteToChronograph(&chrono);
     
     for (int i = 0; i < 5; i++) {
         decrementTimer(&timers[i]);
     }
 
-    //update displays
-    if (guiState == WATCHFACE_STATE) {
-        RTC.read(currentTime);
-        showWatchFace(true);  // partial updates on tick
-    } else if (guiState == WORLD_TIME_STATE) {
-        showWorldTime(true);
-    } else if (guiState == CHRONOGRAPH_STATE) {
-        showChronograph(true);
-    } else if (guiState == TIMER_STATE) {
-        showTimer(true);
-    } else if (guiState == PET_STATE) {
-        showPET(true);
+    if(!displayUpdatedDuringTick) {
+        //update displays
+        if (guiState == WATCHFACE_STATE) {
+            RTC.read(currentTime);
+            showWatchFace(true);  // partial updates on tick
+        } else if (guiState == WORLD_TIME_STATE) {
+            showWorldTime(true);
+        } else if (guiState == CHRONOGRAPH_STATE) {
+            showChronograph(true);
+        } else if (guiState == TIMER_STATE) {
+            showTimer(true);
+        } else if (guiState == PET_STATE) {
+            showPET(true);
+        }
     }
 }   
 
@@ -195,6 +199,7 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
         }
     }
     
+    displayUpdatedDuringTick = true;
     showState(guiState, true);
 }
 
@@ -1447,7 +1452,7 @@ void Watchy::showTimer(bool partialRefresh) {
 
     display.setTextWrap(false);
     drawCenteredString("Timers", 100, 20, false);
-    display.printf("\n\n");
+    display.printf("\n");
 
     display.printf("%d", timerIndex+1);
 
@@ -1584,14 +1589,15 @@ void Watchy::showAlarm(bool partialRefresh) {
         display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off, 26, 14, GxEPD_BLACK);
     }
 
-    display.printf("\n\n");
+    display.printf("\n");
 
     display.setFont(&Bizcat_32pt7b);
 
     if (alarms[alarmIndex].hasDate) {
-        display.printf("%02d:%02d\n%02d/%02d/%04d\n", alarms[alarmIndex].hour, alarms[alarmIndex].minute, alarms[alarmIndex].day, alarms[alarmIndex].month, alarms[alarmIndex].year);
+        display.printf("%02d:%02d\n%02d/%02d/%04d", alarms[alarmIndex].hour, alarms[alarmIndex].minute, alarms[alarmIndex].day, alarms[alarmIndex].month, alarms[alarmIndex].year);
         if (alarms[alarmIndex].repeatType != ALARM_REPEAT_NONE) {
             display.setFont(&Bizcat_24pt7b);
+            display.printf("\n");
             switch (alarms[alarmIndex].repeatType) {
             case ALARM_REPEAT_WEEKLY:
                 display.println("Weekly");
