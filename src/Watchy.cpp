@@ -1452,7 +1452,7 @@ void Watchy::showTimer(bool partialRefresh) {
 
     display.setTextWrap(false);
     drawCenteredString("Timers", 100, 20, false);
-    display.printf("\n");
+    display.printf("\n\n");
 
     display.printf("%d", timerIndex+1);
 
@@ -1462,7 +1462,7 @@ void Watchy::showTimer(bool partialRefresh) {
         display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off, 26, 14, GxEPD_BLACK);
     }
 
-    display.printf("\n\n");
+    display.printf("\n");
 
     display.setFont(&Bizcat_32pt7b);
     display.printf("%d/%02d:%02d\n", timers[timerIndex].days, timers[timerIndex].hours, timers[timerIndex].minutes);
