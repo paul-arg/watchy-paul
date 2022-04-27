@@ -5,9 +5,9 @@ GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> Watchy::display(GxEPD2_154_D67
 
 RTC_DATA_ATTR int guiState;
 RTC_DATA_ATTR int menuIndex;
-RTC_DATA_ATTR uint8_t alarmIndex = 0; //alarm index to show
-RTC_DATA_ATTR uint8_t timerIndex = 0; //timer index to show
-RTC_DATA_ATTR uint8_t PETIndex = 0; //PET index to show
+RTC_DATA_ATTR uint8_t alarmIndex = 0;  // alarm index to show
+RTC_DATA_ATTR uint8_t timerIndex = 0;  // timer index to show
+RTC_DATA_ATTR uint8_t PETIndex = 0;    // PET index to show
 
 RTC_DATA_ATTR uint8_t cityIndex = 2;
 RTC_DATA_ATTR bool DSTOn = true;
@@ -28,7 +28,7 @@ RTC_DATA_ATTR int8_t alarm_set_value_index = SET_ALARM_ON;
 RTC_DATA_ATTR int8_t timer_set_value_index = SET_TIMER_DAYS;
 RTC_DATA_ATTR int8_t PET_set_value_index = SET_PET_ON;
 
-RTC_DATA_ATTR int32_t drift_ms = 10400; //calculated with the detectDrift function
+RTC_DATA_ATTR int32_t drift_ms = 10400;  // calculated with the detectDrift function
 RTC_DATA_ATTR int32_t total_drift = 0;
 
 RTC_DATA_ATTR ezButton menu_button(MENU_BTN_PIN);
@@ -41,43 +41,39 @@ RTC_DATA_ATTR uint8_t cityIndexBeingSet = 2;
 RTC_DATA_ATTR bool DSTBeingSet = false;
 
 RTC_DATA_ATTR W_WorldTime world_times[3] = {
-    { 2,  true},
-    {49,  true},
-    {56, false}
-};
+    {2, true},
+    {49, true},
+    {56, false}};
 
 RTC_DATA_ATTR W_Alarm alarms[5] = {
-    {false, 10, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY  , true, true, true, true, true, true, true},
-    {false, 11, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY  , true, true, true, true, true, true, true},
-    {false, 12, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY  , true, true, true, true, true, true, true},
-    {false, 13, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY  , true, true, true, true, true, true, true},
-    {true ,  9, 0, true , 21, 3, 2022, ALARM_REPEAT_MONTHLY, true, true, true, true, true, true, true}
-};
+    {false, 10, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY, true, true, true, true, true, true, true},
+    {false, 11, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY, true, true, true, true, true, true, true},
+    {false, 12, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY, true, true, true, true, true, true, true},
+    {false, 13, 0, false, 29, 3, 2022, ALARM_REPEAT_DAILY, true, true, true, true, true, true, true},
+    {true, 9, 0, true, 21, 3, 2022, ALARM_REPEAT_MONTHLY, true, true, true, true, true, true, true}};
 
 RTC_DATA_ATTR W_Chronograph chrono = {false, 0, 0, 0};
 
 RTC_DATA_ATTR W_Timer timers[5] = {
-    {false, 0,  0,  5, 0,  0,  5, false, 0},
-    {false, 0,  0, 10, 0,  0, 10, false, 0},
-    {false, 0,  0, 15, 0,  0, 15, false, 0},
-    {false, 0,  0, 20, 0,  0, 20, false, 0},
-    {false, 0,  0, 25, 0,  0, 25, false, 0}
-};
+    {false, 0, 0, 5, 0, 0, 5, false, 0},
+    {false, 0, 0, 10, 0, 0, 10, false, 0},
+    {false, 0, 0, 15, 0, 0, 15, false, 0},
+    {false, 0, 0, 20, 0, 0, 20, false, 0},
+    {false, 0, 0, 25, 0, 0, 25, false, 0}};
 
 RTC_DATA_ATTR W_PET PETs[3] = {
-    {true , false,  0,  0, 21, 5, 2022},
-    {false, false, 17, 30,  2, 4, 2022},
-    {false, false, 17, 30,  2, 4, 2022}
-};
+    {true, false, 0, 0, 21, 5, 2022},
+    {false, false, 17, 30, 2, 4, 2022},
+    {false, false, 17, 30, 2, 4, 2022}};
 
-void Watchy::tick(){
-    //compensate for drift
+void Watchy::tick() {
+    // compensate for drift
     total_drift += drift_ms;
-    if (abs(total_drift) >= 1000000) { //drift has exceeded 1 second, time to compensate
-        RTC.read(currentTime);        
+    if (abs(total_drift) >= 1000000) {  // drift has exceeded 1 second, time to compensate
+        RTC.read(currentTime);
         time_t currentTime_epoch = makeTime(currentTime);
-        
-        if(total_drift > 0){
+
+        if (total_drift > 0) {
             total_drift -= 1000000;
             currentTime_epoch -= 1;
         } else {
@@ -89,17 +85,17 @@ void Watchy::tick(){
         RTC.set(currentTime);
     }
 
-    //do logic
+    // do logic
     displayUpdatedDuringTick = false;
     checkForAlarms();
     addMinuteToChronograph(&chrono);
-    
+
     for (int i = 0; i < 5; i++) {
         decrementTimer(&timers[i]);
     }
 
-    if(!displayUpdatedDuringTick) {
-        //update displays
+    if (!displayUpdatedDuringTick) {
+        // update displays
         if (guiState == WATCHFACE_STATE) {
             RTC.read(currentTime);
             showWatchFace(true);  // partial updates on tick
@@ -113,9 +109,9 @@ void Watchy::tick(){
             showPET(true);
         }
     }
-}   
+}
 
-void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
+void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
     display.setFullWindow();
     display.fillScreen(GxEPD_BLACK);
     display.setFont(&Bizcat_24pt7b);
@@ -136,53 +132,53 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
     pinMode(UP_BTN_PIN, INPUT);
     pinMode(DOWN_BTN_PIN, INPUT);
 
-    while(true){
+    while (true) {
         menu_button.loop();
         back_button.loop();
         up_button.loop();
         down_button.loop();
 
-        //in this context, pressed means released and released means pressed
-        if(menu_button.isReleased()) {
+        // in this context, pressed means released and released means pressed
+        if (menu_button.isReleased()) {
             Serial.println("Menu button is pressed");
         }
-        if(menu_button.isPressed()) {
+        if (menu_button.isPressed()) {
             Serial.println("Menu button is released");
             digitalWrite(VIB_MOTOR_PIN, false);
             break;
         }
-        
-        if(back_button.isReleased()) {
+
+        if (back_button.isReleased()) {
             Serial.println("Back button is pressed");
         }
-        if(back_button.isPressed()) {
+        if (back_button.isPressed()) {
             Serial.println("Back button is released");
             digitalWrite(VIB_MOTOR_PIN, false);
             break;
         }
 
-        if(up_button.isReleased()) {
+        if (up_button.isReleased()) {
             Serial.println("Up button is pressed");
         }
-        if(up_button.isPressed()) {
+        if (up_button.isPressed()) {
             Serial.println("Up button is released");
             digitalWrite(VIB_MOTOR_PIN, false);
             break;
-        }            
+        }
 
-        if(down_button.isReleased()) {
+        if (down_button.isReleased()) {
             Serial.println("Down button is pressed");
         }
-        if(down_button.isPressed()) {
+        if (down_button.isPressed()) {
             Serial.println("Down button is released");
             digitalWrite(VIB_MOTOR_PIN, false);
             break;
         }
 
-        //update the motor state
-        if (millis() - segmentStartTime >= segmentDuration){ //time to jump to the next segment
-            if (position_in_pattern == sizeof(alarm_pattern->pattern) - 1 || alarm_pattern->pattern[position_in_pattern] == 0){
-                if (position_in_repetition == alarm_pattern->repetitions - 1){
+        // update the motor state
+        if (millis() - segmentStartTime >= segmentDuration) {  // time to jump to the next segment
+            if (position_in_pattern == sizeof(alarm_pattern->pattern) - 1 || alarm_pattern->pattern[position_in_pattern] == 0) {
+                if (position_in_repetition == alarm_pattern->repetitions - 1) {
                     digitalWrite(VIB_MOTOR_PIN, false);
                     break;
                 } else {
@@ -193,12 +189,12 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message){
                 position_in_pattern++;
             }
 
-            position_in_pattern % 2 == 0? digitalWrite(VIB_MOTOR_PIN, true) : digitalWrite(VIB_MOTOR_PIN, false);
+            position_in_pattern % 2 == 0 ? digitalWrite(VIB_MOTOR_PIN, true) : digitalWrite(VIB_MOTOR_PIN, false);
             segmentStartTime = millis();
             segmentDuration = alarm_pattern->pattern[position_in_pattern];
         }
     }
-    
+
     displayUpdatedDuringTick = true;
     showState(guiState, true);
 }
@@ -281,18 +277,18 @@ void Watchy::checkForAlarms() {
             } else {
                 Serial.println("Dates do not match.");
 
-                if (alarms[i].repeatType != ALARM_REPEAT_NONE){ 
+                if (alarms[i].repeatType != ALARM_REPEAT_NONE) {
                     Serial.println("Checking repetitions.");
                     Serial.println("Checking if alarm is in the future.");
-                    
+
                     uint32_t now_epoch = makeTime(currentTime);
                     uint32_t alarm_epoch = tmConvert_t(alarms[i].year, alarms[i].month, alarms[i].day, alarms[i].hour, alarms[i].minute, 0);
 
-                    if(now_epoch < alarm_epoch) {
+                    if (now_epoch < alarm_epoch) {
                         Serial.println("Alarm is in the future.");
                         continue;
                     }
-                
+
                     switch (alarms[i].repeatType) {
                         case ALARM_REPEAT_WEEKLY:
                             Serial.println("Alarm repeats weekly.");
@@ -317,7 +313,7 @@ void Watchy::checkForAlarms() {
                                 continue;
                             }
                             break;
-                        
+
                         default:
                             break;
                     }
@@ -330,55 +326,55 @@ void Watchy::checkForAlarms() {
             Serial.println("Alarm has no date.");
             Serial.println("Checking weekday.");
             switch (currentTime.Wday) {
-                case 1: //sunday
+                case 1:  // sunday
                     if (!alarms[i].sunday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
 
-                case 2: //monday
+                case 2:  // monday
                     if (!alarms[i].monday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
 
-                case 3: //tuesday
+                case 3:  // tuesday
                     if (!alarms[i].tuesday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
 
-                case 4: //wednesday
+                case 4:  // wednesday
                     if (!alarms[i].wednesday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
 
-                case 5: //thursday
+                case 5:  // thursday
                     if (!alarms[i].thursday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
 
-                case 6: //friday
+                case 6:  // friday
                     if (!alarms[i].friday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
 
-                case 7: //saturday
+                case 7:  // saturday
                     if (!alarms[i].saturday) {
                         Serial.println("Weekday does not match.");
                         continue;
                     }
                     break;
-                
+
                 default:
                     break;
             }
@@ -389,7 +385,7 @@ void Watchy::checkForAlarms() {
         if (alarms[i].hour == currentTime.Hour && alarms[i].minute == currentTime.Minute) {
             Serial.println("Hours match.");
             Serial.println("Trigerring alarm.");
-            //showBuzz("Alarm " + String(i + 1) + "!");
+            // showBuzz("Alarm " + String(i + 1) + "!");
             buzz(&pattern_1s_10t, "Alarm " + String(i + 1) + "!");
         } else {
             Serial.println("Time does not match.");
@@ -429,7 +425,7 @@ void Watchy::handleButtonPress() {
 }
 
 void Watchy::awakeLogic() {
-    //when awake
+    // when awake
     bool timeout = false;
     long lastPress = millis();
     bool pressed_after_awakening = false;
@@ -448,7 +444,6 @@ void Watchy::awakeLogic() {
             display_released = true;
             showState(guiState, true);
         } else {
-
             if (digitalRead(RTC_INT_PIN) == 0) {  // LOW means RTC ticks
                 RTC.read(currentTime);
                 if (currentTime.Minute != lastMinuteChecked) {
@@ -463,28 +458,28 @@ void Watchy::awakeLogic() {
             up_button.loop();
             down_button.loop();
 
-            //in this context, pressed means released and released means pressed
-            if(menu_button.isReleased()) {
+            // in this context, pressed means released and released means pressed
+            if (menu_button.isReleased()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Menu button is pressed");
             }
-            if(menu_button.isPressed()) {
+            if (menu_button.isPressed()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Menu button is released");
                 menuButton();
             }
-            
-            if(back_button.isReleased()) {
+
+            if (back_button.isReleased()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Back button is pressed");
             }
-            if(back_button.isPressed()) {
+            if (back_button.isPressed()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
@@ -492,39 +487,37 @@ void Watchy::awakeLogic() {
                 backButton();
             }
 
-            if(up_button.isReleased()) {
+            if (up_button.isReleased()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Up button is pressed");
             }
-            if(up_button.isPressed()) {
+            if (up_button.isPressed()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Up button is released");
                 upButton();
-            }            
+            }
 
-            if(down_button.isReleased()) {
+            if (down_button.isReleased()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Down button is pressed");
             }
-            if(down_button.isPressed()) {
+            if (down_button.isPressed()) {
                 lastPress = millis();
                 pressed_after_awakening = true;
                 display_released = false;
                 Serial.println("Down button is released");
                 downButton();
             }
-                       
-            
 
             /*
             // first check if the clock is ticking
-            
+
 
             // then check for button presses
             if (digitalRead(MENU_BTN_PIN) == 1) {
@@ -554,34 +547,34 @@ void Watchy::awakeLogic() {
 void Watchy::menuButton() {
     if (guiState == WATCHFACE_STATE) {  // enter menu state if coming from watch face
         guiState = WORLD_TIME_STATE;
-        //showWorldTime(true);
-        // showSleep(false);
+        // showWorldTime(true);
+        //  showSleep(false);
     } else if (guiState == TIME_SET_STATE) {
-        time_set_index == SET_YEAR ? time_set_index = SET_CITY : time_set_index++; 
+        time_set_index == SET_YEAR ? time_set_index = SET_CITY : time_set_index++;
     } else if (guiState == SLEEP_STATE) {  // enter menu state if coming from watch face
         guiState = WORLD_TIME_STATE;
-        //showWorldTime(true);
+        // showWorldTime(true);
     } else if (guiState == WORLD_TIME_STATE) {
         guiState = CHRONOGRAPH_STATE;
-        //showChronograph(true);
+        // showChronograph(true);
     } else if (guiState == WORLD_TIME_SET_STATE) {
         WT_set_value_index == SET_WORLD_TIME_DST_ON ? WT_set_value_index = SET_WORLD_TIME_INDEX : WT_set_value_index++;
     } else if (guiState == CHRONOGRAPH_STATE) {
         guiState = TIMER_STATE;
-        //showTimer(true);
+        // showTimer(true);
     } else if (guiState == TIMER_STATE) {
         guiState = ALARM_STATE;
-        //showAlarm(true);
+        // showAlarm(true);
     } else if (guiState == TIMER_SET_STATE) {
         if (timer_set_value_index == SET_TIMER_WILL_REPEAT) {
             timer_set_value_index = SET_TIMER_DAYS;
         } else {
             timer_set_value_index++;
         }
-        //showTimerSet(true);
+        // showTimerSet(true);
     } else if (guiState == ALARM_STATE) {
         guiState = PET_STATE;
-        //showPET(true);
+        // showPET(true);
     } else if (guiState == ALARM_SET_STATE) {
         if (alarm_set_value_index == SET_ALARM_SUNDAY) {
             alarm_set_value_index = SET_ALARM_ON;
@@ -592,34 +585,34 @@ void Watchy::menuButton() {
         } else {
             alarm_set_value_index++;
         }
-        //showAlarmSet(true);
+        // showAlarmSet(true);
     } else if (guiState == PET_STATE) {
-        //showMET(true); //we won't use MET just yet
+        // showMET(true); //we won't use MET just yet
         RTC.read(currentTime);
         guiState = WATCHFACE_STATE;
-        //showWatchFace(true);
+        // showWatchFace(true);
 
     } else if (guiState == PET_SET_STATE) {
-        if (PET_set_value_index == SET_PET_YEAR){
+        if (PET_set_value_index == SET_PET_YEAR) {
             PET_set_value_index = SET_PET_ON;
         } else if (!PETs[PETIndex].isOn && PET_set_value_index == SET_PET_ON) {
-            //do nothing
+            // do nothing
         } else {
             PET_set_value_index++;
         }
-        //showPETSet(true);
+        // showPETSet(true);
     } else if (guiState == MET_STATE) {
         RTC.read(currentTime);
         guiState = WATCHFACE_STATE;
-        //showWatchFace(true);
+        // showWatchFace(true);
     }
 
     else if (guiState == MAIN_MENU_STATE) {  // if already in menu, then select menu item
         switch (menuIndex) {
             case 0:
                 showAbout();
-                //showChess(true);
-                //detectDrift();
+                // showChess(true);
+                // detectDrift();
                 break;
             case 1:
                 showBuzz("Buzz!");
@@ -628,7 +621,7 @@ void Watchy::menuButton() {
                 showAccelerometer();
                 break;
             case 3:
-                //setTime();
+                // setTime();
                 RTC.read(timeBeingSet);
                 cityIndexBeingSet = cityIndex;
                 timeBeingSet.Second = 0;
@@ -656,12 +649,12 @@ void Watchy::backButton() {
     if (guiState == MAIN_MENU_STATE) {  // exit to watch face if already in menu
         RTC.read(currentTime);
         guiState = WATCHFACE_STATE;
-        //showWatchFace(true);
+        // showWatchFace(true);
     } else if (guiState == TIME_SET_STATE) {
         RTC.set(timeBeingSet);
         DSTOn = DSTBeingSet;
         cityIndex = cityIndexBeingSet;
-        guiState = MAIN_MENU_STATE; 
+        guiState = MAIN_MENU_STATE;
     } else if (guiState == APP_STATE) {
         showMenu(menuIndex, true);  // exit to menu if already in app
     } else if (guiState == FW_UPDATE_STATE) {
@@ -675,7 +668,7 @@ void Watchy::backButton() {
     } else if (guiState == TIMER_STATE) {
         timer_set_value_index = SET_TIMER_DAYS;
         guiState = TIMER_SET_STATE;
-        //showTimerSet(true);
+        // showTimerSet(true);
     } else if (guiState == TIMER_SET_STATE) {
         timers[timerIndex].days = timers[timerIndex].original_days;
         timers[timerIndex].hours = timers[timerIndex].original_hours;
@@ -683,21 +676,21 @@ void Watchy::backButton() {
         timers[timerIndex].repetition_count = 0;
         timers[timerIndex].isRunning = false;
         guiState = TIMER_STATE;
-        //showTimer(true);
-    }else if (guiState == ALARM_STATE) {
+        // showTimer(true);
+    } else if (guiState == ALARM_STATE) {
         alarm_set_value_index = SET_ALARM_ON;
         guiState = ALARM_SET_STATE;
-        //showAlarmSet(true);
+        // showAlarmSet(true);
     } else if (guiState == ALARM_SET_STATE) {
         guiState = ALARM_STATE;
-        //showAlarm(true);
+        // showAlarm(true);
     } else if (guiState == PET_STATE) {
         PET_set_value_index = SET_PET_ON;
         guiState = PET_SET_STATE;
-        //showPETSet(true);
+        // showPETSet(true);
     } else if (guiState == PET_SET_STATE) {
         guiState = PET_STATE;
-        //showPET(true);
+        // showPET(true);
     }
 }
 
@@ -707,93 +700,91 @@ void Watchy::upButton() {
         if (menuIndex < 0) {
             menuIndex = MENU_LENGTH - 1;
         }
-        //showMenu(menuIndex, true);
+        // showMenu(menuIndex, true);
     } else if (guiState == TIME_SET_STATE) {
         switch (time_set_index) {
-        
-        case SET_CITY:
-            cityIndexBeingSet == number_of_cities - 1 ? cityIndexBeingSet = 0 : cityIndexBeingSet++;
-            break;
-        
-        case SET_HOUR:
-            timeBeingSet.Hour == 23 ? timeBeingSet.Hour = 0 : timeBeingSet.Hour++;
-            break;
+            case SET_CITY:
+                cityIndexBeingSet == number_of_cities - 1 ? cityIndexBeingSet = 0 : cityIndexBeingSet++;
+                break;
 
-        case SET_MINUTE:
-            timeBeingSet.Minute == 59 ? timeBeingSet.Minute = 0 : timeBeingSet.Minute++;
-            break;
+            case SET_HOUR:
+                timeBeingSet.Hour == 23 ? timeBeingSet.Hour = 0 : timeBeingSet.Hour++;
+                break;
 
-        case SET_DST_ON:
-            DSTBeingSet = !DSTBeingSet;
-            break;
+            case SET_MINUTE:
+                timeBeingSet.Minute == 59 ? timeBeingSet.Minute = 0 : timeBeingSet.Minute++;
+                break;
 
-        case SET_DAY:
-            timeBeingSet.Day == getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year)) ? timeBeingSet.Day = 0 : timeBeingSet.Day++;
-            break;
+            case SET_DST_ON:
+                DSTBeingSet = !DSTBeingSet;
+                break;
 
-        case SET_MONTH:
-            timeBeingSet.Month == 12 ? timeBeingSet.Month = 0 : timeBeingSet.Month++;
-            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
-                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
-            }
-            break;
+            case SET_DAY:
+                timeBeingSet.Day == getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year)) ? timeBeingSet.Day = 0 : timeBeingSet.Day++;
+                break;
 
-        case SET_YEAR:
-            timeBeingSet.Year++;
-            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
-                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
-            }
-            break;
-        
-        default:
-            break;
+            case SET_MONTH:
+                timeBeingSet.Month == 12 ? timeBeingSet.Month = 0 : timeBeingSet.Month++;
+                if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))) {
+                    timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+                }
+                break;
+
+            case SET_YEAR:
+                timeBeingSet.Year++;
+                if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))) {
+                    timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+                }
+                break;
+
+            default:
+                break;
         }
     } else if (guiState == WATCHFACE_STATE) {
         return;
     } else if (guiState == WORLD_TIME_SET_STATE) {
         switch (WT_set_value_index) {
-        case SET_WORLD_TIME_INDEX:
-            if (WT_set_index == 2) {
-                WT_set_index = 0;
-            } else {
-                WT_set_index++;
-            }
-            break;
+            case SET_WORLD_TIME_INDEX:
+                if (WT_set_index == 2) {
+                    WT_set_index = 0;
+                } else {
+                    WT_set_index++;
+                }
+                break;
 
-        case SET_WORLD_TIME_CITY:
-            if (world_times[WT_set_index].city_index == number_of_cities - 1) {
-                world_times[WT_set_index].city_index = 0;
-            } else {
-                world_times[WT_set_index].city_index++;
-            }
-            break;
+            case SET_WORLD_TIME_CITY:
+                if (world_times[WT_set_index].city_index == number_of_cities - 1) {
+                    world_times[WT_set_index].city_index = 0;
+                } else {
+                    world_times[WT_set_index].city_index++;
+                }
+                break;
 
-        case SET_WORLD_TIME_DST_ON:
-            world_times[WT_set_index].dst_on = !world_times[WT_set_index].dst_on;
-            break;
-        
-        default:
-            break;
+            case SET_WORLD_TIME_DST_ON:
+                world_times[WT_set_index].dst_on = !world_times[WT_set_index].dst_on;
+                break;
+
+            default:
+                break;
         }
     } else if (guiState == CHRONOGRAPH_STATE) {
         chrono.isRunning = !chrono.isRunning;
-        //showChronograph(true);
+        // showChronograph(true);
     } else if (guiState == TIMER_STATE) {
         if (!(timers[timerIndex].days == 0 && timers[timerIndex].hours == 0 && timers[timerIndex].minutes == 0)) {
             timers[timerIndex].isRunning = !timers[timerIndex].isRunning;
-        } else { 
+        } else {
             timers[timerIndex].days = timers[timerIndex].original_days;
             timers[timerIndex].hours = timers[timerIndex].original_hours;
             timers[timerIndex].minutes = timers[timerIndex].original_minutes;
         }
-        //showTimer(true);
+        // showTimer(true);
     } else if (guiState == TIMER_SET_STATE) {
-        
         switch (timer_set_value_index) {
             case SET_TIMER_ON:
                 timers[timerIndex].isRunning = !timers[timerIndex].isRunning;
                 break;
-            
+
             case SET_TIMER_DAYS:
                 timers[timerIndex].original_days++;
                 break;
@@ -820,10 +811,10 @@ void Watchy::upButton() {
                 break;
         }
 
-        //showTimerSet(true);
-    } else if (guiState == ALARM_STATE) { 
+        // showTimerSet(true);
+    } else if (guiState == ALARM_STATE) {
         alarms[alarmIndex].isOn = !alarms[alarmIndex].isOn;
-        //showAlarm(true);
+        // showAlarm(true);
     } else if (guiState == ALARM_SET_STATE) {
         switch (alarm_set_value_index) {
             case SET_ALARM_ON:
@@ -914,21 +905,19 @@ void Watchy::upButton() {
             case SET_ALARM_SATURDAY:
                 alarms[alarmIndex].saturday = !alarms[alarmIndex].saturday;
                 break;
-            
+
             case SET_ALARM_SUNDAY:
                 alarms[alarmIndex].sunday = !alarms[alarmIndex].sunday;
                 break;
-
-
         }
-        //showAlarmSet(true);
+        // showAlarmSet(true);
     } else if (guiState == PET_STATE) {
         if (PETIndex == 0) {
             PETIndex = 4;
         } else {
             PETIndex--;
-        }   
-        //showPET(true);
+        }
+        // showPET(true);
     } else if (guiState == PET_SET_STATE) {
         switch (PET_set_value_index) {
             case SET_PET_ON:
@@ -984,7 +973,7 @@ void Watchy::upButton() {
                 }
                 break;
         }
-        //showPETSet(true);
+        // showPETSet(true);
     }
 }
 
@@ -994,73 +983,72 @@ void Watchy::downButton() {
         if (menuIndex > MENU_LENGTH - 1) {
             menuIndex = 0;
         }
-        //showMenu(menuIndex, true);
+        // showMenu(menuIndex, true);
     } else if (guiState == WATCHFACE_STATE) {
         return;
     } else if (guiState == TIME_SET_STATE) {
         switch (time_set_index) {
-        
-        case SET_CITY:
-            cityIndexBeingSet == 0 ? cityIndexBeingSet = number_of_cities - 1 : cityIndexBeingSet--;
-            break;
-        
-        case SET_HOUR:
-            timeBeingSet.Hour == 0 ? timeBeingSet.Hour = 23 : timeBeingSet.Hour--;
-            break;
+            case SET_CITY:
+                cityIndexBeingSet == 0 ? cityIndexBeingSet = number_of_cities - 1 : cityIndexBeingSet--;
+                break;
 
-        case SET_MINUTE:
-            timeBeingSet.Minute == 0 ? timeBeingSet.Minute = 59 : timeBeingSet.Minute--;
-            break;
+            case SET_HOUR:
+                timeBeingSet.Hour == 0 ? timeBeingSet.Hour = 23 : timeBeingSet.Hour--;
+                break;
 
-        case SET_DST_ON:
-            DSTBeingSet = !DSTBeingSet;
-            break;
+            case SET_MINUTE:
+                timeBeingSet.Minute == 0 ? timeBeingSet.Minute = 59 : timeBeingSet.Minute--;
+                break;
 
-        case SET_DAY:
-            timeBeingSet.Day == 0 ? timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year)) : timeBeingSet.Day++;
-            break;
+            case SET_DST_ON:
+                DSTBeingSet = !DSTBeingSet;
+                break;
 
-        case SET_MONTH:
-            timeBeingSet.Month == 0 ? timeBeingSet.Month = 12 : timeBeingSet.Month--;
-            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
-                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
-            }
-            break;
+            case SET_DAY:
+                timeBeingSet.Day == 0 ? timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year)) : timeBeingSet.Day++;
+                break;
 
-        case SET_YEAR:
-            timeBeingSet.Year--;
-            if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))){
-                timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
-            }
-            break;
-        
-        default:
-            break;
+            case SET_MONTH:
+                timeBeingSet.Month == 0 ? timeBeingSet.Month = 12 : timeBeingSet.Month--;
+                if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))) {
+                    timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+                }
+                break;
+
+            case SET_YEAR:
+                timeBeingSet.Year--;
+                if (timeBeingSet.Day > getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year))) {
+                    timeBeingSet.Day = getLastDay(timeBeingSet.Month, tmYearToCalendar(timeBeingSet.Year));
+                }
+                break;
+
+            default:
+                break;
         }
     } else if (guiState == WORLD_TIME_SET_STATE) {
         switch (WT_set_value_index) {
-        case SET_WORLD_TIME_INDEX:
-            if (WT_set_index == 0) {
-                WT_set_index = 2;
-            } else {
-                WT_set_index--;
-            }
-            break;
+            case SET_WORLD_TIME_INDEX:
+                if (WT_set_index == 0) {
+                    WT_set_index = 2;
+                } else {
+                    WT_set_index--;
+                }
+                break;
 
-        case SET_WORLD_TIME_CITY:
-            if (world_times[WT_set_index].city_index == 0) {
-                world_times[WT_set_index].city_index = number_of_cities - 1;
-            } else {
-                world_times[WT_set_index].city_index--;
-            }
-            break;
+            case SET_WORLD_TIME_CITY:
+                if (world_times[WT_set_index].city_index == 0) {
+                    world_times[WT_set_index].city_index = number_of_cities - 1;
+                } else {
+                    world_times[WT_set_index].city_index--;
+                }
+                break;
 
-        case SET_WORLD_TIME_DST_ON:
-            world_times[WT_set_index].dst_on = !world_times[WT_set_index].dst_on;
-            break;
-        
-        default:
-            break;
+            case SET_WORLD_TIME_DST_ON:
+                world_times[WT_set_index].dst_on = !world_times[WT_set_index].dst_on;
+                break;
+
+            default:
+                break;
         }
     } else if (guiState == ALARM_STATE) {
         if (alarmIndex == 4) {
@@ -1068,24 +1056,23 @@ void Watchy::downButton() {
         } else {
             alarmIndex++;
         }
-        //showAlarm(true);
+        // showAlarm(true);
     } else if (guiState == CHRONOGRAPH_STATE) {
         resetChronograph(&chrono);
-        //showChronograph(true);
+        // showChronograph(true);
     } else if (guiState == TIMER_STATE) {
         if (timerIndex == 4) {
             timerIndex = 0;
         } else {
             timerIndex++;
         }
-        //showTimer(true);
+        // showTimer(true);
     } else if (guiState == TIMER_SET_STATE) {
-        
         switch (timer_set_value_index) {
             case SET_TIMER_ON:
                 timers[timerIndex].isRunning = !timers[timerIndex].isRunning;
                 break;
-            
+
             case SET_TIMER_DAYS:
                 if (timers[timerIndex].original_days > 0) {
                     timers[timerIndex].original_days--;
@@ -1113,7 +1100,7 @@ void Watchy::downButton() {
                 timers[timerIndex].willRepeat = !timers[timerIndex].willRepeat;
                 break;
         }
-        //showTimerSet(true);
+        // showTimerSet(true);
 
     } else if (guiState == ALARM_SET_STATE) {
         switch (alarm_set_value_index) {
@@ -1205,19 +1192,19 @@ void Watchy::downButton() {
             case SET_ALARM_SATURDAY:
                 alarms[alarmIndex].saturday = !alarms[alarmIndex].saturday;
                 break;
-            
+
             case SET_ALARM_SUNDAY:
                 alarms[alarmIndex].sunday = !alarms[alarmIndex].sunday;
                 break;
         }
-        //showAlarmSet(true);
+        // showAlarmSet(true);
     } else if (guiState == PET_STATE) {
         if (PETIndex == 4) {
             PETIndex = 0;
         } else {
             PETIndex++;
-        }        
-        //showPET(true);
+        }
+        // showPET(true);
     } else if (guiState == PET_SET_STATE) {
         switch (PET_set_value_index) {
             case SET_PET_ON:
@@ -1273,7 +1260,7 @@ void Watchy::downButton() {
                 }
                 break;
         }
-        //showPETSet(true);
+        // showPETSet(true);
     }
 }
 
@@ -1283,17 +1270,17 @@ void Watchy::showChronograph(bool partialRefresh) {
     display.setTextColor(GxEPD_BLACK);
     display.setFont(&Bizcat_24pt7b);
 
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    
-    if(chrono.isRunning){
-        display.drawBitmap(200-12, 0, epd_bitmap_pause, 12, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+
+    if (chrono.isRunning) {
+        display.drawBitmap(200 - 12, 0, epd_bitmap_pause, 12, 13, GxEPD_BLACK);
     } else {
-        display.drawBitmap(200-7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
-        display.drawBitmap(200-10, 200-37, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
+        display.drawBitmap(200 - 7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
+        display.drawBitmap(200 - 10, 200 - 37, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
     }
 
     drawModeIndicator(2);
-    
+
     display.setTextWrap(false);
     drawCenteredString("Chronograph", 100, 20, false);
     display.printf("\n\n");
@@ -1304,7 +1291,7 @@ void Watchy::showChronograph(bool partialRefresh) {
 
     RTC.read(currentTime);
     uint32_t now_epoch = makeTime(currentTime);
-    //time after return
+    // time after return
     uint32_t TAR_epoch = now_epoch + chrono.days * 86400 + chrono.hours * 3600 + chrono.minutes * 60;
     tmElements_t TAR_tme;
     breakTime(TAR_epoch, TAR_tme);
@@ -1327,10 +1314,10 @@ void Watchy::showWorldTime(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
 
     drawModeIndicator(1);
-    
+
     display.setTextWrap(false);
     drawCenteredString("World Time", 100, 20, false);
     display.printf("\n");
@@ -1344,12 +1331,12 @@ void Watchy::showWorldTime(bool partialRefresh) {
     for (uint8_t i = 0; i < 3; i++) {
         int16_t now_offset = cities[cityIndex].utc_offset;
         wt_epoch = now_epoch - (now_offset * 60) + (cities[world_times[i].city_index].utc_offset * 60);
-        
-        if(DSTOn) {
+
+        if (DSTOn) {
             wt_epoch -= 3600;
         }
 
-        if(world_times[i].dst_on) {
+        if (world_times[i].dst_on) {
             wt_epoch += 3600;
         }
 
@@ -1358,13 +1345,12 @@ void Watchy::showWorldTime(bool partialRefresh) {
 
         display.println(cities[world_times[i].city_index].name);
         display.printf(
-            "%02d:%02d %02d/%02d/%04d\n", 
+            "%02d:%02d %02d/%02d/%04d\n",
             wt_telements.Hour,
             wt_telements.Minute,
             wt_telements.Day,
             wt_telements.Month,
-            tmYearToCalendar(wt_telements.Year)
-        );
+            tmYearToCalendar(wt_telements.Year));
     }
 
     display.display(partialRefresh);
@@ -1381,7 +1367,7 @@ void Watchy::showWorldTimeSet(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
 
@@ -1397,7 +1383,6 @@ void Watchy::showWorldTimeSet(bool partialRefresh) {
     display.println(WT_set_index + 1);
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
-
     if (WT_set_value_index == SET_WORLD_TIME_CITY) {
         display.getTextBounds(cities[world_times[WT_set_index].city_index].name, 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
         display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
@@ -1406,9 +1391,9 @@ void Watchy::showWorldTimeSet(bool partialRefresh) {
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
     if (cities[world_times[WT_set_index].city_index].utc_offset >= 0) {
-        display.printf("UTC +%g\n", cities[world_times[WT_set_index].city_index].utc_offset/60.0);
+        display.printf("UTC +%g\n", cities[world_times[WT_set_index].city_index].utc_offset / 60.0);
     } else {
-        display.printf("UTC %g\n", cities[world_times[WT_set_index].city_index].utc_offset/60.0);
+        display.printf("UTC %g\n", cities[world_times[WT_set_index].city_index].utc_offset / 60.0);
     }
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
@@ -1436,17 +1421,17 @@ void Watchy::showTimer(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    if (timers[timerIndex].isRunning){
-        display.drawBitmap(200-12, 0, epd_bitmap_pause, 12, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    if (timers[timerIndex].isRunning) {
+        display.drawBitmap(200 - 12, 0, epd_bitmap_pause, 12, 13, GxEPD_BLACK);
     } else {
         if (timers[timerIndex].days == 0 && timers[timerIndex].hours == 0 && timers[timerIndex].minutes == 0) {
-            display.drawBitmap(200-10, 0, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
-        }else {
-            display.drawBitmap(200-7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
+            display.drawBitmap(200 - 10, 0, epd_bitmap_reset_n90, 10, 37, GxEPD_BLACK);
+        } else {
+            display.drawBitmap(200 - 7, 0, epd_bitmap_play, 7, 13, GxEPD_BLACK);
         }
     }
-    display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
+    display.drawBitmap(200 - 13, 200 - 8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
 
     drawModeIndicator(3);
 
@@ -1454,7 +1439,7 @@ void Watchy::showTimer(bool partialRefresh) {
     drawCenteredString("Timers", 100, 20, false);
     display.printf("\n\n");
 
-    display.printf("%d", timerIndex+1);
+    display.printf("%d", timerIndex + 1);
 
     if (timers[timerIndex].isRunning) {
         display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_on, 26, 14, GxEPD_BLACK);
@@ -1484,7 +1469,7 @@ void Watchy::showTimer(bool partialRefresh) {
     guiState = TIMER_STATE;
 }
 
-void Watchy::showTimerSet(bool partialRefresh){
+void Watchy::showTimerSet(bool partialRefresh) {
     int16_t bound_x, bound_y;
     uint16_t bound_width, bound_height;
 
@@ -1494,12 +1479,12 @@ void Watchy::showTimerSet(bool partialRefresh){
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
 
     display.setCursor(20, 20);
-    display.printf("Set Timer %d\n", timerIndex+1);
+    display.printf("Set Timer %d\n", timerIndex + 1);
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
     /*String timer_on_text;
@@ -1569,19 +1554,19 @@ void Watchy::showAlarm(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
-    display.drawBitmap(200-10, 0, epd_bitmap_toggle_n90, 10, 45, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(200 - 13, 200 - 8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
+    display.drawBitmap(200 - 10, 0, epd_bitmap_toggle_n90, 10, 45, GxEPD_BLACK);
 
     drawModeIndicator(4);
-    
+
     display.setTextWrap(false);
     drawCenteredString("Alarms", 100, 20, false);
     display.printf("\n\n");
 
-    //display.setFont(&Bizcat_24pt7b);
+    // display.setFont(&Bizcat_24pt7b);
 
-    display.printf("%d", alarmIndex+1);
+    display.printf("%d", alarmIndex + 1);
 
     if (alarms[alarmIndex].isOn) {
         display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_on, 26, 14, GxEPD_BLACK);
@@ -1599,33 +1584,33 @@ void Watchy::showAlarm(bool partialRefresh) {
             display.setFont(&Bizcat_24pt7b);
             display.printf("\n");
             switch (alarms[alarmIndex].repeatType) {
-            case ALARM_REPEAT_WEEKLY:
-                display.println("Weekly");
-                break;
+                case ALARM_REPEAT_WEEKLY:
+                    display.println("Weekly");
+                    break;
 
-            case ALARM_REPEAT_MONTHLY:
-                display.println("Monthly");
-                break;
+                case ALARM_REPEAT_MONTHLY:
+                    display.println("Monthly");
+                    break;
 
-            case ALARM_REPEAT_YEARLY:
-                display.println("Yearly");
-                break;
-            
-            default:
-                break;
+                case ALARM_REPEAT_YEARLY:
+                    display.println("Yearly");
+                    break;
+
+                default:
+                    break;
             }
         }
     } else {
         display.printf("%02d:%02d\n", alarms[alarmIndex].hour, alarms[alarmIndex].minute);
 
         display.setFont(&Bizcat_24pt7b);
-        display.print(alarms[alarmIndex].monday?    "M " : "- ");
-        display.print(alarms[alarmIndex].tuesday?   "T " : "- ");
-        display.print(alarms[alarmIndex].wednesday? "W " : "- ");
-        display.print(alarms[alarmIndex].thursday?  "T " : "- ");
-        display.print(alarms[alarmIndex].friday?    "F " : "- ");
-        display.print(alarms[alarmIndex].saturday?  "S " : "- ");
-        display.print(alarms[alarmIndex].sunday?    "S " : "-");
+        display.print(alarms[alarmIndex].monday ? "M " : "- ");
+        display.print(alarms[alarmIndex].tuesday ? "T " : "- ");
+        display.print(alarms[alarmIndex].wednesday ? "W " : "- ");
+        display.print(alarms[alarmIndex].thursday ? "T " : "- ");
+        display.print(alarms[alarmIndex].friday ? "F " : "- ");
+        display.print(alarms[alarmIndex].saturday ? "S " : "- ");
+        display.print(alarms[alarmIndex].sunday ? "S " : "-");
     }
 
     display.display(partialRefresh);
@@ -1649,12 +1634,12 @@ void Watchy::drawAlarmSet() {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
 
     display.setCursor(20, 20);
-    display.printf("Set Alarm %d\n", alarmIndex+1);
+    display.printf("Set Alarm %d\n", alarmIndex + 1);
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
     String alarm_on_text;
@@ -1769,19 +1754,18 @@ void Watchy::drawAlarmSet() {
     display.println(alarm_repeat_type_text);
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
-
-    if (alarms[alarmIndex].repeatType == ALARM_REPEAT_DAILY){
+    if (alarms[alarmIndex].repeatType == ALARM_REPEAT_DAILY) {
         if (alarm_set_value_index == SET_ALARM_MONDAY) {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
-        display.print(alarms[alarmIndex].monday    ? "M " : "- ");
+        display.print(alarms[alarmIndex].monday ? "M " : "- ");
 
         if (alarm_set_value_index == SET_ALARM_TUESDAY) {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
-        display.print(alarms[alarmIndex].tuesday   ? "T " : "- ");
+        display.print(alarms[alarmIndex].tuesday ? "T " : "- ");
 
         if (alarm_set_value_index == SET_ALARM_WEDNESDAY) {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
@@ -1793,25 +1777,25 @@ void Watchy::drawAlarmSet() {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
-        display.print(alarms[alarmIndex].thursday  ? "T " : "- ");
+        display.print(alarms[alarmIndex].thursday ? "T " : "- ");
 
         if (alarm_set_value_index == SET_ALARM_FRIDAY) {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
-        display.print(alarms[alarmIndex].friday    ? "F " : "- ");
+        display.print(alarms[alarmIndex].friday ? "F " : "- ");
 
         if (alarm_set_value_index == SET_ALARM_SATURDAY) {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
-        display.print(alarms[alarmIndex].saturday  ? "S " : "- ");
+        display.print(alarms[alarmIndex].saturday ? "S " : "- ");
 
         if (alarm_set_value_index == SET_ALARM_SUNDAY) {
             display.getTextBounds("M", 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
             display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
         }
-        display.print(alarms[alarmIndex].sunday    ? "S " : "- ");
+        display.print(alarms[alarmIndex].sunday ? "S " : "- ");
     }
 }
 
@@ -1821,9 +1805,9 @@ void Watchy::showPET(bool partialRefresh) {
     display.setTextColor(GxEPD_BLACK);
     display.setFont(&Bizcat_24pt7b);
 
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    display.drawBitmap(200-13, 0, epd_bitmap_up_arrow, 13, 8, GxEPD_BLACK);
-    display.drawBitmap(200-13, 200-8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(200 - 13, 0, epd_bitmap_up_arrow, 13, 8, GxEPD_BLACK);
+    display.drawBitmap(200 - 13, 200 - 8, epd_bitmap_down_arrow, 13, 8, GxEPD_BLACK);
     display.drawBitmap(0, 0, epd_bitmap_set_90, 10, 22, GxEPD_BLACK);
 
     drawModeIndicator(5);
@@ -1843,7 +1827,7 @@ void Watchy::showPET(bool partialRefresh) {
         int32_t diff_seconds = now_epoch - PET_epoch;
 
         display.setFont(&Bizcat_32pt7b);
-        if(diff_seconds >= 0){
+        if (diff_seconds >= 0) {
             display.print("+");
         } else {
             display.print("-");
@@ -1852,7 +1836,7 @@ void Watchy::showPET(bool partialRefresh) {
 
         display.setFont(&Bizcat_24pt7b);
 
-        if (PETs[PETIndex].willBuzz){
+        if (PETs[PETIndex].willBuzz) {
             display.drawBitmap(0, display.getCursorY() - 18, epd_bitmap_vibe_square, 31, 23, GxEPD_BLACK);
             display.setCursor(display.getCursorX() + 42, display.getCursorY());
             display.println("Will buzz");
@@ -1864,12 +1848,11 @@ void Watchy::showPET(bool partialRefresh) {
         display.println("Off");
     }
 
-    
     display.display(partialRefresh);
     guiState = PET_STATE;
 }
 
-void Watchy::showPETSet(bool partialRefresh){
+void Watchy::showPETSet(bool partialRefresh) {
     int16_t bound_x, bound_y;
     uint16_t bound_width, bound_height;
 
@@ -1879,12 +1862,12 @@ void Watchy::showPETSet(bool partialRefresh){
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
 
     display.setCursor(20, 20);
-    display.printf("Set PET %d\n", PETIndex+1);
+    display.printf("Set PET %d\n", PETIndex + 1);
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
     String PET_on_text;
@@ -1976,9 +1959,8 @@ void Watchy::showMET(bool partialRefresh) {
     display.setTextColor(GxEPD_BLACK);
     display.setFont(&Bizcat_24pt7b);
 
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
-    
-    
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+
     display.setTextWrap(false);
     drawCenteredString("MET", 100, 20, false);
     display.printf("\n\n");
@@ -2131,7 +2113,7 @@ void Watchy::showBuzz(String message) {
     }
 }
 
-void Watchy::showState(int guiState, bool partialRefresh){
+void Watchy::showState(int guiState, bool partialRefresh) {
     switch (guiState) {
         case WATCHFACE_STATE:
             RTC.read(currentTime);
@@ -2211,7 +2193,7 @@ void Watchy::showTimeSet(bool partialRefresh) {
     display.setFont(&Bizcat_24pt7b);
 
     display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
-    display.drawBitmap(0, 200-13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
+    display.drawBitmap(0, 200 - 13, epd_bitmap_right_arrow, 8, 13, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
     display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
 
@@ -2227,9 +2209,9 @@ void Watchy::showTimeSet(bool partialRefresh) {
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
     if (cities[cityIndexBeingSet].utc_offset >= 0) {
-        display.printf("UTC +%g\n", cities[cityIndexBeingSet].utc_offset/60.0);
+        display.printf("UTC +%g\n", cities[cityIndexBeingSet].utc_offset / 60.0);
     } else {
-        display.printf("UTC %g\n", cities[cityIndexBeingSet].utc_offset/60.0);
+        display.printf("UTC %g\n", cities[cityIndexBeingSet].utc_offset / 60.0);
     }
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
@@ -2297,17 +2279,14 @@ void Watchy::showTimeSet(bool partialRefresh) {
     display.print("\n");
     display.setCursor(display.getCursorX() + 20, display.getCursorY());
 
-
     guiState = TIME_SET_STATE;
     display.display(partialRefresh);
 }
 
 void Watchy::drawFEN(String fen, bool partialRefresh) {
-
 }
 
 void Watchy::showChess(bool partialRefresh) {
-
     display.setFullWindow();
     display.fillScreen(GxEPD_WHITE);
     display.setFont(&Bizcat_7b);
@@ -2321,7 +2300,7 @@ void Watchy::showChess(bool partialRefresh) {
         http.setConnectTimeout(3000);  // 3 second max timeout
         String queryURL = "https://lichess.org/api/account/playing";
         http.begin(queryURL.c_str());
-        http.addHeader("Authorization", "unused for now");//LICHESS_AUTH_HEADER);
+        http.addHeader("Authorization", "unused for now");  // LICHESS_AUTH_HEADER);
         int httpResponseCode = http.GET();
         if (httpResponseCode == 200) {
             Serial.println("HTTP 200");
@@ -2342,118 +2321,118 @@ void Watchy::showChess(bool partialRefresh) {
                 } else {
                     whiteAtBottom = false;
                 }
-                
+
                 display.fillScreen(GxEPD_WHITE);
                 display.drawBitmap(0, 0, epd_bitmap_chessboard, 200, 200, GxEPD_BLACK);
 
                 uint8_t rank = 0;
                 uint8_t file = 0;
 
-                for (uint16_t i = 0; i < fen.length(); i++){
-                    switch(fen[i]){
+                for (uint16_t i = 0; i < fen.length(); i++) {
+                    switch (fen[i]) {
                         case 'P':
-                        drawPiece(W_PAWN, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(W_PAWN, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'N':
-                        drawPiece(W_KNIGHT, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(W_KNIGHT, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'B':
-                        drawPiece(W_BISHOP, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(W_BISHOP, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'R':
-                        drawPiece(W_ROOK, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(W_ROOK, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'Q':
-                        drawPiece(W_QUEEN, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(W_QUEEN, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'K':
-                        drawPiece(W_KING, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(W_KING, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'p':
-                        drawPiece(B_PAWN, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(B_PAWN, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'n':
-                        drawPiece(B_KNIGHT, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(B_KNIGHT, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'b':
-                        drawPiece(B_BISHOP, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(B_BISHOP, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'r':
-                        drawPiece(B_ROOK, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(B_ROOK, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'q':
-                        drawPiece(B_QUEEN, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(B_QUEEN, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case 'k':
-                        drawPiece(B_KING, file, rank, whiteAtBottom);
-                        file++;
-                        break;
+                            drawPiece(B_KING, file, rank, whiteAtBottom);
+                            file++;
+                            break;
 
                         case '/':
-                        rank++;
-                        file = 0;
-                        break;
+                            rank++;
+                            file = 0;
+                            break;
 
                         case '1':
-                        file += 1;
-                        break;
+                            file += 1;
+                            break;
 
                         case '2':
-                        file += 2;
-                        break;
+                            file += 2;
+                            break;
 
                         case '3':
-                        file += 3;
-                        break;
+                            file += 3;
+                            break;
 
                         case '4':
-                        file += 4;
-                        break;
+                            file += 4;
+                            break;
 
                         case '5':
-                        file += 5;
-                        break;
+                            file += 5;
+                            break;
 
                         case '6':
-                        file += 6;
-                        break;
+                            file += 6;
+                            break;
 
                         case '7':
-                        file += 7;
-                        break;
+                            file += 7;
+                            break;
 
                         case '8':
-                        file += 8;
-                        break;
+                            file += 8;
+                            break;
 
                         case ' ':
-                        goto exit_for;
-                        break;
+                            goto exit_for;
+                            break;
                     }
                 }
-                exit_for:;
+            exit_for:;
 
             } else {
                 Serial.println(error.c_str());
@@ -3070,7 +3049,7 @@ void Watchy::showSyncNTP() {
     if (connectWiFi()) {
         if (syncNTP()) {
             display.println("NTP Sync Success\n");
-            
+
             display.println("Previous time was:");
             display.printf("%02d:%02d:%02d\n", previousTime.Hour, previousTime.Minute, previousTime.Second);
             display.printf("%02d/%02d/%04d\n", previousTime.Day, previousTime.Month, tmYearToCalendar(previousTime.Year));
@@ -3092,13 +3071,13 @@ void Watchy::showSyncNTP() {
 }
 
 bool Watchy::syncNTP() {  // NTP sync - call after connecting to WiFi and remember to turn it back off
-    //return syncNTP(settings.gmtOffset, settings.dstOffset, settings.ntpServer.c_str());
+    // return syncNTP(settings.gmtOffset, settings.dstOffset, settings.ntpServer.c_str());
     return syncNTP(cities[cityIndex].utc_offset * 60, DSTOn ? 3600 : 0, settings.ntpServer.c_str());
 }
 
 bool Watchy::syncNTP(long gmt, int dst, String ntpServer) {  // NTP sync - call after connecting to WiFi and remember to turn it back off
     WiFiUDP ntpUDP;
-    NTPClient timeClient(ntpUDP, ntpServer.c_str(), gmt+dst);
+    NTPClient timeClient(ntpUDP, ntpServer.c_str(), gmt + dst);
     timeClient.begin();
     if (!timeClient.forceUpdate()) {
         return false;  // NTP sync failed
@@ -3142,18 +3121,18 @@ void Watchy::drawCenteredString(const String &str, int x, int y, bool drawBg) {
     display.print(str);
 }
 
-uint8_t Watchy::getWeekday(uint8_t day, uint8_t month, uint16_t year){
+uint8_t Watchy::getWeekday(uint8_t day, uint8_t month, uint16_t year) {
     return (day + (13 * (month + 1) / 5) + (year) + (year / 4) - (year / 100) + (year / 400)) % 7;
 }
 
-void Watchy::addMinuteToChronograph(W_Chronograph *chronograph){
-    if(!chronograph->isRunning){
+void Watchy::addMinuteToChronograph(W_Chronograph *chronograph) {
+    if (!chronograph->isRunning) {
         return;
     }
 
-    if(chronograph->minutes == 59){
+    if (chronograph->minutes == 59) {
         chronograph->minutes = 0;
-        if(chronograph->hours == 23){
+        if (chronograph->hours == 23) {
             chronograph->hours = 0;
             chronograph->days++;
         } else {
@@ -3164,22 +3143,22 @@ void Watchy::addMinuteToChronograph(W_Chronograph *chronograph){
     }
 }
 
-void Watchy::resetChronograph(W_Chronograph *chronograph){
+void Watchy::resetChronograph(W_Chronograph *chronograph) {
     chronograph->days = 0;
     chronograph->hours = 0;
     chronograph->minutes = 0;
 }
 
-void Watchy::decrementTimer(W_Timer *timer){
-    if(!timer->isRunning){
+void Watchy::decrementTimer(W_Timer *timer) {
+    if (!timer->isRunning) {
         return;
     }
 
-    //last minute
-    if(timer->days == 0 && timer->hours == 0 && timer->minutes == 1){
+    // last minute
+    if (timer->days == 0 && timer->hours == 0 && timer->minutes == 1) {
         timer->minutes--;
 
-        if (timer->willRepeat){
+        if (timer->willRepeat) {
             timer->days = timer->original_days;
             timer->hours = timer->original_hours;
             timer->minutes = timer->original_minutes;
@@ -3187,15 +3166,15 @@ void Watchy::decrementTimer(W_Timer *timer){
         } else {
             timer->isRunning = false;
         }
-        
-        //showBuzz("Timer");
+
+        // showBuzz("Timer");
         buzz(&pattern_1s_10t, "Timer");
         return;
     }
 
-    //otherwise
-    if (timer->minutes == 0){
-        if(timer->hours == 0){
+    // otherwise
+    if (timer->minutes == 0) {
+        if (timer->hours == 0) {
             timer->hours = 23;
             timer->minutes = 59;
             timer->days--;
@@ -3208,7 +3187,7 @@ void Watchy::decrementTimer(W_Timer *timer){
     }
 }
 
-void Watchy::setPETtoNow(W_PET *PET){
+void Watchy::setPETtoNow(W_PET *PET) {
     RTC.read(currentTime);
 
     PET->hour = currentTime.Hour;
@@ -3218,7 +3197,7 @@ void Watchy::setPETtoNow(W_PET *PET){
     PET->year = tmYearToCalendar(currentTime.Year);
 }
 
-time_t Watchy::tmConvert_t(int YYYY, byte MM, byte DD, byte hh, byte mm, byte ss){
+time_t Watchy::tmConvert_t(int YYYY, byte MM, byte DD, byte hh, byte mm, byte ss) {
     tmElements_t tmSet;
     tmSet.Year = YYYY - 1970;
     tmSet.Month = MM;
@@ -3229,76 +3208,76 @@ time_t Watchy::tmConvert_t(int YYYY, byte MM, byte DD, byte hh, byte mm, byte ss
     return makeTime(tmSet);
 }
 
-uint16_t Watchy::secondsToDays(int32_t diff){
-    return abs(diff)/86400;
+uint16_t Watchy::secondsToDays(int32_t diff) {
+    return abs(diff) / 86400;
 }
 
-uint8_t Watchy::secondsToHours(int32_t diff){
-    return (abs(diff) - secondsToDays(diff)*86400)/3600;
+uint8_t Watchy::secondsToHours(int32_t diff) {
+    return (abs(diff) - secondsToDays(diff) * 86400) / 3600;
 }
 
-uint8_t Watchy::secondsToMinutes(int32_t diff){
-    return (abs(diff) - secondsToDays(diff)*86400 - secondsToHours(diff)*3600)/60;
+uint8_t Watchy::secondsToMinutes(int32_t diff) {
+    return (abs(diff) - secondsToDays(diff) * 86400 - secondsToHours(diff) * 3600) / 60;
 }
 
-void Watchy::drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool whiteAtBottom) { //row = rank, column = file, orentation = true => white at bottom
-    if(!whiteAtBottom){
+void Watchy::drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool whiteAtBottom) {  // row = rank, column = file, orentation = true => white at bottom
+    if (!whiteAtBottom) {
         file = 7 - file;
         rank = 7 - rank;
     }
-    
+
     switch (piece) {
         case W_ROOK:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wR, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_wR, 25, 25, GxEPD_BLACK);
+            break;
 
         case W_KNIGHT:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wN, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_wN, 25, 25, GxEPD_BLACK);
+            break;
 
         case W_BISHOP:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wB, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_wB, 25, 25, GxEPD_BLACK);
+            break;
 
         case W_QUEEN:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wQ, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_wQ, 25, 25, GxEPD_BLACK);
+            break;
 
         case W_KING:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wK, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_wK, 25, 25, GxEPD_BLACK);
+            break;
 
         case W_PAWN:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_wP, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_wP, 25, 25, GxEPD_BLACK);
+            break;
 
         case B_ROOK:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bR, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_bR, 25, 25, GxEPD_BLACK);
+            break;
 
         case B_KNIGHT:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bN, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_bN, 25, 25, GxEPD_BLACK);
+            break;
 
         case B_BISHOP:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bB, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_bB, 25, 25, GxEPD_BLACK);
+            break;
 
         case B_QUEEN:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bQ, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_bQ, 25, 25, GxEPD_BLACK);
+            break;
 
         case B_KING:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bK, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_bK, 25, 25, GxEPD_BLACK);
+            break;
 
         case B_PAWN:
-        display.drawBitmap(file * 25, rank * 25, epd_bitmap_bP, 25, 25, GxEPD_BLACK);
-        break;
+            display.drawBitmap(file * 25, rank * 25, epd_bitmap_bP, 25, 25, GxEPD_BLACK);
+            break;
     }
 }
 
-void Watchy::detectDrift(){
+void Watchy::detectDrift() {
     pinMode(RTC_INT_PIN, INPUT);
     bool done = false;
     bool firstTickOccured = false;
@@ -3308,21 +3287,20 @@ void Watchy::detectDrift(){
     int32_t drift;
 
     Serial.println("Starting drift detection");
-    while(!done){
-
-        if(!firstTickOccured && digitalRead(RTC_INT_PIN) == 0){
+    while (!done) {
+        if (!firstTickOccured && digitalRead(RTC_INT_PIN) == 0) {
             firstTick = micros();
             Serial.printf("tick 1: %d\n", firstTick);
             firstTickOccured = true;
-            RTC.clearAlarm(); 
+            RTC.clearAlarm();
         }
 
-        if(firstTickOccured && !readyToCheckAgain && micros() - firstTick > 30000000) {
+        if (firstTickOccured && !readyToCheckAgain && micros() - firstTick > 30000000) {
             Serial.printf("ready to check again\n");
             readyToCheckAgain = true;
         }
 
-        if(readyToCheckAgain){
+        if (readyToCheckAgain) {
             if (digitalRead(RTC_INT_PIN) == 0) {  // LOW means RTC ticks
                 secondTick = micros();
                 Serial.printf("tick 2: %d\n", secondTick);
@@ -3334,11 +3312,11 @@ void Watchy::detectDrift(){
     }
 }
 
-void Watchy::drawModeIndicator(uint8_t mode){
+void Watchy::drawModeIndicator(uint8_t mode) {
     uint8_t total_width = 6 * MODE_LINE_WIDTH + 5 * MODE_BLANK_WIDTH;
     uint8_t cursor = 100 - floor(total_width / 2);
 
-    for (uint8_t i = 0; i < 6; i++){
+    for (uint8_t i = 0; i < 6; i++) {
         display.drawRect(cursor, MODE_BASELINE, MODE_LINE_WIDTH, i == mode ? MODE_SELECTED_HEIGHT : MODE_UNSELECTED_HEIGHT, GxEPD_BLACK);
         cursor += MODE_LINE_WIDTH + MODE_BLANK_WIDTH;
     }
