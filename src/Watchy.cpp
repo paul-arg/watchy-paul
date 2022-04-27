@@ -98,6 +98,7 @@ void Watchy::tick() {
     // do logic
     displayUpdatedDuringTick = false;
     checkForAlarms();
+    checkForPETs();
     addMinuteToChronograph(&chrono);
 
     for (int i = 0; i < 5; i++) {
@@ -411,6 +412,33 @@ void Watchy::checkForAlarms() {
         } else {
             Serial.println("Time does not match.");
             continue;
+        }
+    }
+}
+
+void Watchy::checkForPETs(){
+    Serial.println("Checking PETs");
+    RTC.read(currentTime);
+
+    for(uint8_t i = 0; i < 3; i++){
+        if(!PETs[i].willBuzz){
+            Serial.println("PET " + String(i) + " will not buzz.");
+            continue;
+        }
+
+        Serial.println("PET " + String(i) + " will buzz.");
+
+        if (
+            tmYearToCalendar(currentTime.Year) == PETs[i].year &&
+            currentTime.Month == PETs[i].month &&
+            currentTime.Day == PETs[i].day &&
+            currentTime.Hour == PETs[i].hour &&
+            currentTime.Minute == PETs[i].minute
+        ) {
+            Serial.println("PET " + String(i) + " matches.");
+            buzz(&pattern_1s_10t, "PET " + String(i), mediumVibe);
+        } else {
+            Serial.println("PET " + String(i) + " does not match.");
         }
     }
 }

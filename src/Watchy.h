@@ -241,6 +241,7 @@ class Watchy {
         void showChess(bool partialRefresh);
         void drawFEN(String fen, bool partialRefresh);
         void checkForAlarms();
+        void checkForPETs();
         void awakeLogic();
         void detectDrift();
         void buzz(Alarm_Pattern const *alarm_pattern, String message, uint8_t vibeIntensity);
