@@ -659,13 +659,14 @@ void Watchy::menuButton() {
     else if (guiState == MAIN_MENU_STATE) {  // if already in menu, then select menu item
         switch (menuIndex) {
             case 0:
-                //showAbout();
+                showAbout();
                 // showChess(true);
                 // detectDrift();
-                buzz(&pattern_1s_10t, "test", mediumVibe);
+                //buzz(&pattern_1s_10t, "test", mediumVibe);
                 break;
             case 1:
-                showBuzz("Buzz!");
+                //showBuzz("Buzz!");
+                buzz(&pattern_1s_10t, "test", mediumVibe);
                 break;
             case 2:
                 showAccelerometer();
