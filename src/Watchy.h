@@ -243,7 +243,7 @@ class Watchy {
         void checkForAlarms();
         void awakeLogic();
         void detectDrift();
-        void buzz(Alarm_Pattern const *alarm_pattern, String message);
+        void buzz(Alarm_Pattern const *alarm_pattern, String message, uint8_t vibeIntensity);
         void drawModeIndicator(uint8_t mode);
 
         void drawPiece(uint8_t piece, uint8_t file, uint8_t rank, bool orientation);

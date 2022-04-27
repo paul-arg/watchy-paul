@@ -31,6 +31,16 @@ RTC_DATA_ATTR int8_t PET_set_value_index = SET_PET_ON;
 RTC_DATA_ATTR int32_t drift_ms = 10400;  // calculated with the detectDrift function
 RTC_DATA_ATTR int32_t total_drift = 0;
 
+// setting PWM properties
+const int freq = 500;
+const int motorChannel = 0;
+const int resolution = 8;
+
+// from 0 to 255
+const uint8_t softVibe = 65;
+const uint8_t mediumVibe = 127;
+const uint8_t maxVibe = 255;
+
 RTC_DATA_ATTR ezButton menu_button(MENU_BTN_PIN);
 RTC_DATA_ATTR ezButton back_button(BACK_BTN_PIN);
 RTC_DATA_ATTR ezButton up_button(UP_BTN_PIN);
@@ -111,7 +121,7 @@ void Watchy::tick() {
     }
 }
 
-void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
+void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message, uint8_t vibeIntensity) {
     display.setFullWindow();
     display.fillScreen(GxEPD_BLACK);
     display.setFont(&Bizcat_24pt7b);
@@ -119,13 +129,18 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
     drawCenteredString(message, 100, 100, false);
     display.display(true);  // full refresh
 
-    pinMode(VIB_MOTOR_PIN, OUTPUT);
+    // configure LED PWM functionalitites
+    ledcSetup(motorChannel, freq, resolution);
+    // attach the channel to the GPIO to be controlled
+    ledcAttachPin(VIB_MOTOR_PIN, motorChannel);
+
     uint8_t position_in_pattern = 0;
     uint8_t position_in_repetition = 0;
     uint32_t segmentStartTime = millis();
     uint16_t segmentDuration = alarm_pattern->pattern[position_in_pattern];
 
-    digitalWrite(VIB_MOTOR_PIN, true);
+    //digitalWrite(VIB_MOTOR_PIN, true);
+    ledcWrite(motorChannel, vibeIntensity);
 
     pinMode(MENU_BTN_PIN, INPUT);
     pinMode(BACK_BTN_PIN, INPUT);
@@ -144,7 +159,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
         }
         if (menu_button.isPressed()) {
             Serial.println("Menu button is released");
-            digitalWrite(VIB_MOTOR_PIN, false);
+            //digitalWrite(VIB_MOTOR_PIN, false);
+            ledcWrite(motorChannel, 0);
             break;
         }
 
@@ -153,7 +169,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
         }
         if (back_button.isPressed()) {
             Serial.println("Back button is released");
-            digitalWrite(VIB_MOTOR_PIN, false);
+            //digitalWrite(VIB_MOTOR_PIN, false);
+            ledcWrite(motorChannel, 0);
             break;
         }
 
@@ -162,7 +179,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
         }
         if (up_button.isPressed()) {
             Serial.println("Up button is released");
-            digitalWrite(VIB_MOTOR_PIN, false);
+            //digitalWrite(VIB_MOTOR_PIN, false);
+            ledcWrite(motorChannel, 0);
             break;
         }
 
@@ -171,7 +189,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
         }
         if (down_button.isPressed()) {
             Serial.println("Down button is released");
-            digitalWrite(VIB_MOTOR_PIN, false);
+            //digitalWrite(VIB_MOTOR_PIN, false);
+            ledcWrite(motorChannel, 0);
             break;
         }
 
@@ -179,7 +198,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
         if (millis() - segmentStartTime >= segmentDuration) {  // time to jump to the next segment
             if (position_in_pattern == sizeof(alarm_pattern->pattern) - 1 || alarm_pattern->pattern[position_in_pattern] == 0) {
                 if (position_in_repetition == alarm_pattern->repetitions - 1) {
-                    digitalWrite(VIB_MOTOR_PIN, false);
+                    //digitalWrite(VIB_MOTOR_PIN, false);
+                    ledcWrite(motorChannel, 0);
                     break;
                 } else {
                     position_in_repetition++;
@@ -189,7 +209,8 @@ void Watchy::buzz(Alarm_Pattern const *alarm_pattern, String message) {
                 position_in_pattern++;
             }
 
-            position_in_pattern % 2 == 0 ? digitalWrite(VIB_MOTOR_PIN, true) : digitalWrite(VIB_MOTOR_PIN, false);
+            //position_in_pattern % 2 == 0 ? digitalWrite(VIB_MOTOR_PIN, true) : digitalWrite(VIB_MOTOR_PIN, false);
+            position_in_pattern % 2 == 0 ? ledcWrite(motorChannel, vibeIntensity) : ledcWrite(motorChannel, 0);
             segmentStartTime = millis();
             segmentDuration = alarm_pattern->pattern[position_in_pattern];
         }
@@ -386,7 +407,7 @@ void Watchy::checkForAlarms() {
             Serial.println("Hours match.");
             Serial.println("Trigerring alarm.");
             // showBuzz("Alarm " + String(i + 1) + "!");
-            buzz(&pattern_1s_10t, "Alarm " + String(i + 1) + "!");
+            buzz(&pattern_1s_10t, "Alarm " + String(i + 1) + "!", mediumVibe);
         } else {
             Serial.println("Time does not match.");
             continue;
@@ -610,9 +631,10 @@ void Watchy::menuButton() {
     else if (guiState == MAIN_MENU_STATE) {  // if already in menu, then select menu item
         switch (menuIndex) {
             case 0:
-                showAbout();
+                //showAbout();
                 // showChess(true);
                 // detectDrift();
+                buzz(&pattern_1s_10t, "test", mediumVibe);
                 break;
             case 1:
                 showBuzz("Buzz!");
@@ -3168,7 +3190,7 @@ void Watchy::decrementTimer(W_Timer *timer) {
         }
 
         // showBuzz("Timer");
-        buzz(&pattern_1s_10t, "Timer");
+        buzz(&pattern_1s_10t, "Timer", mediumVibe);
         return;
     }
 
