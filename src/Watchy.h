@@ -191,6 +191,12 @@ const Alarm_Pattern pattern_300ms_150ms_5t = {
     5
 };
 
+// from 0 to 255
+#define SOFT_VIBE 63
+#define MEDIUM_VIBE 127
+#define HIGH_VIBE 191
+#define MAX_VIBE 255
+
 class Watchy {
     public:
         static WatchyRTC RTC;
@@ -236,6 +242,7 @@ class Watchy {
         void showPET(bool partialRefresh);
         void showPETSet(bool partialRefresh);
         void showMET(bool partialRefresh);
+        void showVibeIntensitySet(bool partialRefresh);
         void drawSleep();
         void showSleep(bool partialRefresh);
         void showChess(bool partialRefresh);

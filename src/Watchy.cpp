@@ -27,6 +27,7 @@ RTC_DATA_ATTR int8_t WT_set_value_index = SET_WORLD_TIME_INDEX;
 RTC_DATA_ATTR int8_t alarm_set_value_index = SET_ALARM_ON;
 RTC_DATA_ATTR int8_t timer_set_value_index = SET_TIMER_DAYS;
 RTC_DATA_ATTR int8_t PET_set_value_index = SET_PET_ON;
+RTC_DATA_ATTR uint8_t vibeIntensity = MEDIUM_VIBE;
 
 RTC_DATA_ATTR int32_t drift_ms = 10400;  // calculated with the detectDrift function
 RTC_DATA_ATTR int32_t total_drift = 0;
@@ -35,11 +36,6 @@ RTC_DATA_ATTR int32_t total_drift = 0;
 const int freq = 500;
 const int motorChannel = 0;
 const int resolution = 8;
-
-// from 0 to 255
-const uint8_t softVibe = 65;
-const uint8_t mediumVibe = 127;
-const uint8_t maxVibe = 255;
 
 RTC_DATA_ATTR ezButton menu_button(MENU_BTN_PIN);
 RTC_DATA_ATTR ezButton back_button(BACK_BTN_PIN);
@@ -408,7 +404,7 @@ void Watchy::checkForAlarms() {
             Serial.println("Hours match.");
             Serial.println("Trigerring alarm.");
             // showBuzz("Alarm " + String(i + 1) + "!");
-            buzz(&pattern_1s_10t, "Alarm " + String(i + 1) + "!", mediumVibe);
+            buzz(&pattern_1s_10t, "Alarm " + String(i + 1) + "!", vibeIntensity);
         } else {
             Serial.println("Time does not match.");
             continue;
@@ -436,7 +432,7 @@ void Watchy::checkForPETs(){
             currentTime.Minute == PETs[i].minute
         ) {
             Serial.println("PET " + String(i) + " matches.");
-            buzz(&pattern_1s_10t, "PET " + String(i), mediumVibe);
+            buzz(&pattern_1s_10t, "PET " + String(i), vibeIntensity);
         } else {
             Serial.println("PET " + String(i) + " does not match.");
         }
@@ -662,11 +658,11 @@ void Watchy::menuButton() {
                 showAbout();
                 // showChess(true);
                 // detectDrift();
-                //buzz(&pattern_1s_10t, "test", mediumVibe);
+                //buzz(&pattern_1s_10t, "test", MEDIUM_VIBE);
                 break;
             case 1:
                 //showBuzz("Buzz!");
-                buzz(&pattern_1s_10t, "test", mediumVibe);
+                buzz(&pattern_1s_10t, "test", vibeIntensity);
                 break;
             case 2:
                 showAccelerometer();
@@ -683,7 +679,8 @@ void Watchy::menuButton() {
                 setupWifi();
                 break;
             case 5:
-                showUpdateFW();
+                //showUpdateFW();
+                showVibeIntensitySet(true);
                 break;
             case 6:
                 showSyncNTP();
@@ -742,6 +739,8 @@ void Watchy::backButton() {
     } else if (guiState == PET_SET_STATE) {
         guiState = PET_STATE;
         // showPET(true);
+    } else if (guiState == VIBE_INTENSITY_SET_STATE) {
+        guiState = MAIN_MENU_STATE;
     }
 }
 
@@ -1025,6 +1024,24 @@ void Watchy::upButton() {
                 break;
         }
         // showPETSet(true);
+    } else if (guiState == VIBE_INTENSITY_SET_STATE){
+        switch (vibeIntensity) {
+            case SOFT_VIBE:
+                vibeIntensity = MEDIUM_VIBE;
+                break;
+        
+            case MEDIUM_VIBE:
+                vibeIntensity = HIGH_VIBE;
+                break;
+
+            case HIGH_VIBE:
+                vibeIntensity = MAX_VIBE;
+                break;
+
+            case MAX_VIBE:
+                vibeIntensity = SOFT_VIBE;
+                break;
+        }
     }
 }
 
@@ -1312,6 +1329,24 @@ void Watchy::downButton() {
                 break;
         }
         // showPETSet(true);
+    } else if (guiState == VIBE_INTENSITY_SET_STATE){
+        switch (vibeIntensity) {
+            case SOFT_VIBE:
+                vibeIntensity = MAX_VIBE;
+                break;
+        
+            case MEDIUM_VIBE:
+                vibeIntensity = SOFT_VIBE;
+                break;
+
+            case HIGH_VIBE:
+                vibeIntensity = MEDIUM_VIBE;
+                break;
+
+            case MAX_VIBE:
+                vibeIntensity = HIGH_VIBE;
+                break;
+        }
     }
 }
 
@@ -2029,7 +2064,7 @@ void Watchy::showMenu(byte menuIndex, bool partialRefresh) {
     uint16_t w, h;
     int16_t yPos;
 
-    const char *menuItems[] = {"About Watchy", "Vibrate Motor", "Show Accelerometer", "Set Time", "Setup WiFi", "Update Firmware", "Sync NTP"};
+    const char *menuItems[] = {"About Watchy", "Vibrate Motor", "Show Accelerometer", "Set Time", "Setup WiFi", "Vibe Intensity", "Sync NTP"};
     for (int i = 0; i < MENU_LENGTH; i++) {
         yPos = MENU_HEIGHT + (MENU_HEIGHT * i);
         display.setCursor(0, yPos);
@@ -2217,6 +2252,10 @@ void Watchy::showState(int guiState, bool partialRefresh) {
 
         case MAIN_MENU_STATE:
             showMenu(menuIndex, partialRefresh);
+            break;
+
+        case VIBE_INTENSITY_SET_STATE:
+            showVibeIntensitySet(partialRefresh);
             break;
 
         default:
@@ -3219,7 +3258,7 @@ void Watchy::decrementTimer(W_Timer *timer) {
         }
 
         // showBuzz("Timer");
-        buzz(&pattern_1s_10t, "Timer", mediumVibe);
+        buzz(&pattern_1s_10t, "Timer", vibeIntensity);
         return;
     }
 
@@ -3371,4 +3410,49 @@ void Watchy::drawModeIndicator(uint8_t mode) {
         display.drawRect(cursor, MODE_BASELINE, MODE_LINE_WIDTH, i == mode ? MODE_SELECTED_HEIGHT : MODE_UNSELECTED_HEIGHT, GxEPD_BLACK);
         cursor += MODE_LINE_WIDTH + MODE_BLANK_WIDTH;
     }
+}
+
+void Watchy::showVibeIntensitySet(bool partialRefresh){
+    int16_t bound_x, bound_y;
+    uint16_t bound_width, bound_height;
+
+    display.setFullWindow();
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setFont(&Bizcat_24pt7b);
+
+    display.drawBitmap(0, 0, epd_bitmap_done_90, 10, 32, GxEPD_BLACK);
+    display.drawBitmap(200 - 9, 0, epd_bitmap_plus, 9, 9, GxEPD_BLACK);
+    display.drawBitmap(200 - 9, 200 - 9, epd_bitmap_minus, 9, 9, GxEPD_BLACK);
+
+    display.setCursor(20, 20);
+    display.printf("Set Vibe\n");
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    String vibe_intensity_text;
+    switch(vibeIntensity){
+        case SOFT_VIBE:
+            vibe_intensity_text = "Soft";
+            break;
+
+        case MEDIUM_VIBE:
+            vibe_intensity_text = "Medium";
+            break;
+
+        case HIGH_VIBE:
+            vibe_intensity_text = "High";
+            break;
+
+        case MAX_VIBE:
+            vibe_intensity_text = "Max";
+            break;
+    }
+    
+    display.getTextBounds(vibe_intensity_text, 0, 20, &bound_x, &bound_y, &bound_width, &bound_height);
+    display.fillRect(display.getCursorX(), display.getCursorY() + 3, bound_width, 2, GxEPD_BLACK);
+    display.println(vibe_intensity_text);
+    display.setCursor(display.getCursorX() + 20, display.getCursorY());
+
+    guiState = VIBE_INTENSITY_SET_STATE;
+    display.display(partialRefresh);
 }
