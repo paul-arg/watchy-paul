@@ -61,3 +61,7 @@ This allows to mash the up and down buttons when setting up alarms and timers, s
 
 - present alerts nicely and choose the type of buzz. For now, they are just a hack of the showBuzz function.
 - maybe add reminders that can alert a certain amount of time before a PET reaches 0/00:00
+
+## Acknowledgements
+
+Thank you @robey for providing the fonts: https://code.lag.net/robey/nuwatchy/src/branch/main/fonts
