@@ -1530,7 +1530,7 @@ void Watchy::showTimer(bool partialRefresh) {
     if (timers[timerIndex].isRunning) {
         display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_on, 26, 14, GxEPD_BLACK);
     } else {
-        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off, 26, 14, GxEPD_BLACK);
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
     }
 
     display.printf("\n");
@@ -1657,7 +1657,7 @@ void Watchy::showAlarm(bool partialRefresh) {
     if (alarms[alarmIndex].isOn) {
         display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_on, 26, 14, GxEPD_BLACK);
     } else {
-        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off, 26, 14, GxEPD_BLACK);
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
     }
 
     display.printf("\n");
@@ -3139,6 +3139,10 @@ void Watchy::showSyncNTP() {
     if (connectWiFi()) {
         if (syncNTP()) {
             display.println("NTP Sync Success\n");
+
+            if (RTC.rtcType == PCF8563) {
+                RTC.rtc_pcf.releaseStopBit();
+            }
 
             display.println("Previous time was:");
             display.printf("%02d:%02d:%02d\n", previousTime.Hour, previousTime.Minute, previousTime.Second);
