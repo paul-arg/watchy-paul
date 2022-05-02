@@ -1925,9 +1925,11 @@ void Watchy::showPET(bool partialRefresh) {
 
         if (PETs[PETIndex].willBuzz) {
             display.drawBitmap(0, display.getCursorY() - 18, epd_bitmap_vibe_square, 31, 23, GxEPD_BLACK);
-            display.setCursor(display.getCursorX() + 42, display.getCursorY());
+            display.setCursor(display.getCursorX() + 41, display.getCursorY());
             display.println("Will buzz");
         } else {
+            display.drawBitmap(0, display.getCursorY() - 17, epd_bitmap_sleep, 32, 21, GxEPD_BLACK);
+            display.setCursor(display.getCursorX() + 41, display.getCursorY());
             display.println("Will not buzz");
         }
 
