@@ -3144,7 +3144,7 @@ void Watchy::showSyncNTP() {
             display.println("NTP Sync Success\n");
 
             if (RTC.rtcType == PCF8563) {
-                RTC.rtc_pcf.releaseStopBit();
+                RTC.rtc_pcf.clearStatus();
             }
 
             display.println("Previous time was:");
