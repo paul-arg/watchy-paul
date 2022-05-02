@@ -1528,9 +1528,9 @@ void Watchy::showTimer(bool partialRefresh) {
     display.printf("%d", timerIndex + 1);
 
     if (timers[timerIndex].isRunning) {
-        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_on, 26, 14, GxEPD_BLACK);
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 14, epd_bitmap_on, 26, 14, GxEPD_BLACK);
     } else {
-        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 14, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
     }
 
     display.printf("\n");
@@ -1655,9 +1655,9 @@ void Watchy::showAlarm(bool partialRefresh) {
     display.printf("%d", alarmIndex + 1);
 
     if (alarms[alarmIndex].isOn) {
-        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_on, 26, 14, GxEPD_BLACK);
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 14, epd_bitmap_on, 26, 14, GxEPD_BLACK);
     } else {
-        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 13, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 14, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
     }
 
     display.printf("\n");
@@ -1901,11 +1901,12 @@ void Watchy::showPET(bool partialRefresh) {
     display.setTextWrap(false);
     drawCenteredString("PET", 100, 20, false);
     display.printf("\n\n");
-    display.println(PETIndex + 1);
+    display.print(PETIndex + 1);
 
     RTC.read(currentTime);
 
     if (PETs[PETIndex].isOn) {
+        display.printf("\n");
         display.printf("%02d:%02d %02d/%02d/%04d\n", PETs[PETIndex].hour, PETs[PETIndex].minute, PETs[PETIndex].day, PETs[PETIndex].month, PETs[PETIndex].year);
 
         uint32_t PET_epoch = tmConvert_t(PETs[PETIndex].year, PETs[PETIndex].month, PETs[PETIndex].day, PETs[PETIndex].hour, PETs[PETIndex].minute, 0);
@@ -1931,7 +1932,7 @@ void Watchy::showPET(bool partialRefresh) {
         }
 
     } else {
-        display.println("Off");
+        display.drawBitmap(display.getCursorX() + 10, display.getCursorY() - 14, epd_bitmap_off_i, 26, 14, GxEPD_BLACK);
     }
 
     display.display(partialRefresh);
